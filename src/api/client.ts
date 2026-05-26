@@ -1,28 +1,44 @@
-import axios, { type AxiosError } from 'axios';
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-const rawBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
-// normalize: remove trailing slash(es)
-let normalized = rawBase.replace(/\/+$/, '');
-// ensure an API version prefix exists; default to /api/v1 when not present
-if (!/\/api\/v\d+/i.test(normalized)) {
-  normalized = `${normalized}/api/v1`;
+/**
+ * VITE_API_BASE_URL = API origin only (e.g. https://example.com or http://localhost:4000).
+ * /api/v1 is always appended here so endpoint paths stay relative (/auth/..., /admin/...).
+ */
+function resolveApiBaseUrl(): string {
+  const raw = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').trim();
+  const origin = raw.replace(/\/+$/, '').replace(/\/api\/v\d+$/i, '');
+  return `${origin}/api/v1`;
 }
 
-if (import.meta.env.PROD && /localhost|127\.0\.0\.1/i.test(normalized)) {
+export const API_BASE_URL = resolveApiBaseUrl();
+
+if (import.meta.env.PROD && /localhost|127\.0\.0\.1/i.test(API_BASE_URL)) {
   console.error(
-    '[NEXGEN Admin] VITE_API_BASE_URL must be set to your staging API (including /api/v1) before production build.',
+    '[NEXGEN Admin] VITE_API_BASE_URL must point to your deployed API origin before production build.',
   );
 }
 
 export const apiClient = axios.create({
-  baseURL: normalized,
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30000,
 });
 
+function buildFinalUrl(config: InternalAxiosRequestConfig): string {
+  const base = String(config.baseURL || apiClient.defaults.baseURL || '').replace(/\/+$/, '');
+  const path = config.url || '';
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${base}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('nexgen_admin_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  // temporary dev log
+  // eslint-disable-next-line no-console
+  console.log('API URL:', buildFinalUrl(config));
+
   return config;
 });
 

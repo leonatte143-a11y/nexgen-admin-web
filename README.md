@@ -15,7 +15,7 @@ cp .env.example .env.local
 npm install
 ```
 
-Default API URL: `http://localhost:4000/api/v1`
+Default API URL: `http://localhost:4000` (client appends `/api/v1` automatically)
 
 ## Run
 
@@ -62,4 +62,4 @@ npm run build
 npm run preview
 ```
 
-Set `VITE_API_BASE_URL` to your production API origin.
+Set `VITE_API_BASE_URL` to your production API origin (without `/api/v1`).

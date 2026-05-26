@@ -1,9 +1,21 @@
 import axios, { type AxiosError } from 'axios';
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api/v1';
+const rawBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+// normalize: remove trailing slash(es)
+let normalized = rawBase.replace(/\/+$/, '');
+// ensure an API version prefix exists; default to /api/v1 when not present
+if (!/\/api\/v\d+/i.test(normalized)) {
+  normalized = `${normalized}/api/v1`;
+}
+
+if (import.meta.env.PROD && /localhost|127\.0\.0\.1/i.test(normalized)) {
+  console.error(
+    '[NEXGEN Admin] VITE_API_BASE_URL must be set to your staging API (including /api/v1) before production build.',
+  );
+}
 
 export const apiClient = axios.create({
-  baseURL,
+  baseURL: normalized,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30000,
 });

@@ -1,9 +1,16 @@
-import { apiGet, apiPost, apiPut } from './client';
+import { apiGet, apiPost, apiPut, apiClient } from './client';
 import type { DashboardStats, BookingChartPoint, LoginResponse } from '../types/api';
 
 export const adminApi = {
-  login: (email: string, password: string) =>
-    apiPost<LoginResponse>('/auth/admin/login', { email, password }),
+  login: (email: string, password: string) => {
+    const path = '/auth/admin/login';
+    const base = String(apiClient.defaults.baseURL || '');
+    const finalUrl = `${base.replace(/\/+$/, '')}${path}`;
+    // temporary dev log
+    // eslint-disable-next-line no-console
+    console.log('Admin login URL:', finalUrl);
+    return apiPost<LoginResponse>(path, { email, password });
+  },
 
   dashboardStats: () => apiGet<DashboardStats>('/admin/dashboard/stats'),
   bookingsChart: (days = 7) => apiGet<BookingChartPoint[]>('/admin/dashboard/bookings-chart', { days }),

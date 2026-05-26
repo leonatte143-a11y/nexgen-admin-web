@@ -63,8 +63,17 @@ export function AdminLayout() {
   const admin = useSelector((s: RootState) => s.auth.admin);
 
   const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: NEXGEN_ORANGE, color: '#fff' }}>
-      <Box sx={{ p: 2.5 }}>
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        bgcolor: NEXGEN_ORANGE,
+        color: '#fff',
+      }}
+    >
+      <Box sx={{ p: 2.5, flexShrink: 0 }}>
         <Typography variant="h6" sx={{ fontWeight: 800 }}>
           NEXGEN
         </Typography>
@@ -72,8 +81,20 @@ export function AdminLayout() {
           Admin Control Panel
         </Typography>
       </Box>
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)' }} />
-      <List sx={{ flex: 1, py: 1 }}>
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
+      <List
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          py: 1,
+          overflowY: 'auto',
+          '&::-webkit-scrollbar': { width: 6 },
+          '&::-webkit-scrollbar-thumb': {
+            bgcolor: 'rgba(255,255,255,0.35)',
+            borderRadius: 3,
+          },
+        }}
+      >
         {navItems.map((item) => (
           <ListItemButton
             key={item.path}
@@ -137,7 +158,13 @@ export function AdminLayout() {
         sx={{
           width: DRAWER_WIDTH,
           flexShrink: 0,
-          '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', border: 'none' },
+          '& .MuiDrawer-paper': {
+            width: DRAWER_WIDTH,
+            boxSizing: 'border-box',
+            border: 'none',
+            height: '100%',
+            overflow: 'hidden',
+          },
         }}
       >
         {drawer}

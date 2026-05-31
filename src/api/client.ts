@@ -1,4 +1,8 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  type AxiosError,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 
 /**
  * VITE_API_BASE_URL = API origin only (e.g. https://example.com or http://localhost:4000).
@@ -22,7 +26,15 @@ export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 30000,
+  // Treat 204 as success; we normalize empty bodies in unwrapApiResponse
+  validateStatus: (status) => (status >= 200 && status < 300) || status === 304,
 });
+
+const inflightGets = new Map<string, Promise<unknown>>();
+
+function getInflightKey(path: string, params?: Record<string, unknown>) {
+  return `GET:${path}:${JSON.stringify(params ?? {})}`;
+}
 
 function buildFinalUrl(config: InternalAxiosRequestConfig): string {
   const base = String(config.baseURL || apiClient.defaults.baseURL || '').replace(/\/+$/, '');
@@ -35,16 +47,28 @@ apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('nexgen_admin_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
-  // temporary dev log
-  // eslint-disable-next-line no-console
-  console.log('API URL:', buildFinalUrl(config));
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.log('API URL:', buildFinalUrl(config));
+  }
 
   return config;
 });
 
+export function isRequestCancelled(error: unknown): boolean {
+  if (axios.isCancel(error)) return true;
+  if (error && typeof error === 'object' && 'code' in error) {
+    return (error as { code?: string }).code === 'ERR_CANCELED';
+  }
+  return error instanceof Error && error.name === 'CanceledError';
+}
+
 apiClient.interceptors.response.use(
   (res) => res,
   (error: AxiosError<{ message?: string }>) => {
+    if (isRequestCancelled(error)) {
+      return Promise.reject(error);
+    }
     if (error.response?.status === 401) {
       localStorage.removeItem('nexgen_admin_token');
       localStorage.removeItem('nexgen_admin_user');
@@ -58,22 +82,61 @@ apiClient.interceptors.response.use(
   },
 );
 
-export async function apiGet<T>(path: string, params?: Record<string, unknown>): Promise<T> {
-  const { data } = await apiClient.get<{ success: boolean; data: T }>(path, { params });
-  return data.data;
+type ApiEnvelope<T> = { success: boolean; data: T; message?: string };
+
+/**
+ * Normalize API body — 204 / empty must not throw or wipe valid list data.
+ */
+export function unwrapApiResponse<T>(response: AxiosResponse): T {
+  const { status, data } = response;
+
+  if (status === 204 || data === '' || data == null) {
+    return [] as T;
+  }
+
+  if (typeof data === 'object' && data !== null && 'success' in data) {
+    const envelope = data as ApiEnvelope<T>;
+    if (envelope.success === false) {
+      throw new Error(envelope.message || 'Request failed');
+    }
+    return envelope.data;
+  }
+
+  throw new Error('Invalid API response format');
+}
+
+export async function apiGet<T>(
+  path: string,
+  params?: Record<string, unknown>,
+): Promise<T> {
+  const key = getInflightKey(path, params);
+  const existing = inflightGets.get(key);
+  if (existing) return existing as Promise<T>;
+
+  const promise = (async () => {
+    try {
+      const response = await apiClient.get(path, { params });
+      return unwrapApiResponse<T>(response);
+    } finally {
+      inflightGets.delete(key);
+    }
+  })();
+
+  inflightGets.set(key, promise);
+  return promise;
 }
 
 export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
-  const { data } = await apiClient.post<{ success: boolean; data: T }>(path, body);
-  return data.data;
+  const response = await apiClient.post(path, body);
+  return unwrapApiResponse<T>(response);
 }
 
 export async function apiPut<T>(path: string, body?: unknown): Promise<T> {
-  const { data } = await apiClient.put<{ success: boolean; data: T }>(path, body);
-  return data.data;
+  const response = await apiClient.put(path, body);
+  return unwrapApiResponse<T>(response);
 }
 
 export async function apiDelete<T>(path: string): Promise<T> {
-  const { data } = await apiClient.delete<{ success: boolean; data: T }>(path);
-  return data.data;
+  const response = await apiClient.delete(path);
+  return unwrapApiResponse<T>(response);
 }

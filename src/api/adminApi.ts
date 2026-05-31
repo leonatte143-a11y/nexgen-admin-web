@@ -1,5 +1,14 @@
 import { apiGet, apiPost, apiPut } from './client';
 import type { DashboardStats, BookingChartPoint, LoginResponse } from '../types/api';
+import type {
+  DashboardAlertsResponse,
+  FinancialBreakdownResponse,
+  FinancialPipelineResponse,
+  PartnerPerformanceResponse,
+  SupportChatSummaryResponse,
+  UserGrowthResponse,
+} from '../types/dashboardApi';
+import type { CustomerPulseData } from '../types/dashboard';
 
 export const adminApi = {
   login: (email: string, password: string) =>
@@ -8,6 +17,13 @@ export const adminApi = {
   dashboardStats: () => apiGet<DashboardStats>('/admin/dashboard/stats'),
   bookingsChart: (days = 7) => apiGet<BookingChartPoint[]>('/admin/dashboard/bookings-chart', { days }),
   recentActivity: () => apiGet<unknown[]>('/admin/dashboard/recent-activity'),
+  partnerPerformance: () => apiGet<PartnerPerformanceResponse>('/admin/dashboard/partner-performance'),
+  financialBreakdown: () => apiGet<FinancialBreakdownResponse>('/admin/dashboard/financial-breakdown'),
+  financialPipeline: () => apiGet<FinancialPipelineResponse>('/admin/dashboard/financial-pipeline'),
+  userGrowth: (range = '7d') => apiGet<UserGrowthResponse>('/admin/dashboard/user-growth', { range }),
+  reviewsSentiment: (limit = 10) => apiGet<CustomerPulseData & { negativeReviewCount: number }>('/admin/dashboard/reviews-sentiment', { limit }),
+  supportChatSummary: () => apiGet<SupportChatSummaryResponse>('/admin/dashboard/support-chat-summary'),
+  dashboardAlerts: () => apiGet<DashboardAlertsResponse>('/admin/dashboard/alerts'),
   searchAnalytics: () => apiGet<{ keyword: string; searches: number; avgPartnersFound: number; unmet: boolean }[]>('/admin/search-analytics'),
   heatmap: () => apiGet<unknown>('/admin/heatmap'),
 

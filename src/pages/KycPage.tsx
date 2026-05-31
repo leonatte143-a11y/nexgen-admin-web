@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -18,50 +18,52 @@ import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
 import { ErrorAlert } from '../components/ErrorAlert';
+import { useMountedFetch } from '../hooks/useMountedFetch';
 
 interface KycRow {
   id: string;
   name: string;
   phone: string;
-  categories: string[];
+  categories: string[] | string;
   verificationStatus: string;
   documents: { docType: string; fileUrl: string }[];
 }
 
-export function KycPage() {
-  const [rows, setRows] = useState<KycRow[]>([]);
-  const [selected, setSelected] = useState<KycRow | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = async () => {
-    setLoading(true);
+function normalizeCategories(categories: string[] | string | undefined): string {
+  if (Array.isArray(categories)) return categories.join(', ');
+  if (typeof categories === 'string') {
     try {
-      setRows((await adminApi.pendingKyc()) as KycRow[]);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Load failed');
-    } finally {
-      setLoading(false);
+      const parsed = JSON.parse(categories) as string[];
+      return Array.isArray(parsed) ? parsed.join(', ') : categories;
+    } catch {
+      return categories;
     }
-  };
+  }
+  return '';
+}
 
-  useEffect(() => {
-    load();
-  }, []);
+export function KycPage() {
+  const [selected, setSelected] = useState<KycRow | null>(null);
+
+  const fetchPending = useCallback(() => adminApi.pendingKyc() as Promise<KycRow[]>, []);
+
+  const { data: rows, loading, error, reload } = useMountedFetch(fetchPending, [fetchPending]);
 
   const act = async (id: string, approve: boolean) => {
     try {
       if (approve) await adminApi.approveKyc(id);
       else await adminApi.rejectKyc(id, 'Documents unclear');
       setSelected(null);
-      await load();
+      await reload();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Action failed');
+      // reload will surface errors; keep dialog open on action failure
+      console.error(e);
     }
   };
 
-  if (loading) return <LoadingState />;
+  const list = rows ?? [];
+
+  if (loading && list.length === 0) return <LoadingState />;
   return (
     <>
       <PageHeader title="Partner Verification Hub" subtitle="Approve KYC before partners can earn" />
@@ -77,14 +79,31 @@ export function KycPage() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((r) => (
+          {list.length === 0 && !loading && (
+            <TableRow>
+              <TableCell colSpan={5} align="center">
+                <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+                  No pending KYC applications
+                </Typography>
+              </TableCell>
+            </TableRow>
+          )}
+          {list.map((r) => (
             <TableRow key={r.id} hover>
-              <TableCell>{r.name}<br /><Typography variant="caption">{r.phone}</Typography></TableCell>
-              <TableCell>{(r.categories || []).join(', ')}</TableCell>
+              <TableCell>
+                {r.name}
+                <br />
+                <Typography variant="caption">{r.phone}</Typography>
+              </TableCell>
+              <TableCell>{normalizeCategories(r.categories)}</TableCell>
               <TableCell>{r.documents?.length || 0} files</TableCell>
-              <TableCell><Chip label={r.verificationStatus} size="small" color="warning" /></TableCell>
+              <TableCell>
+                <Chip label={r.verificationStatus} size="small" color="warning" />
+              </TableCell>
               <TableCell align="right">
-                <Button size="small" onClick={() => setSelected(r)}>Review</Button>
+                <Button size="small" onClick={() => setSelected(r)}>
+                  Review
+                </Button>
               </TableCell>
             </TableRow>
           ))}
@@ -110,8 +129,12 @@ export function KycPage() {
                 ))}
               </Stack>
               <Stack direction="row" sx={{ gap: 1 }}>
-                <Button variant="contained" color="success" onClick={() => act(selected.id, true)}>Approve</Button>
-                <Button variant="contained" color="error" onClick={() => act(selected.id, false)}>Reject</Button>
+                <Button variant="contained" color="success" onClick={() => act(selected.id, true)}>
+                  Approve
+                </Button>
+                <Button variant="contained" color="error" onClick={() => act(selected.id, false)}>
+                  Reject
+                </Button>
               </Stack>
             </DialogContent>
           </>

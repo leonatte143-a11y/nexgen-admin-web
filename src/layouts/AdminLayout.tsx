@@ -15,6 +15,7 @@ import {
   useMediaQuery,
   useTheme,
   Divider,
+  Chip,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -31,27 +32,40 @@ import PeopleIcon from '@mui/icons-material/People';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SettingsIcon from '@mui/icons-material/Settings';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import HistoryIcon from '@mui/icons-material/History';
+import SearchIcon from '@mui/icons-material/Search';
+import GavelIcon from '@mui/icons-material/Gavel';
+import ChatIcon from '@mui/icons-material/Chat';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import { logout } from '../store/authSlice';
 import type { RootState } from '../store';
 import { NEXGEN_ORANGE } from '../theme';
+import { navItemsForRole, normalizeRole } from '../config/rbac';
 
 const DRAWER_WIDTH = 260;
 
-const navItems = [
-  { path: '/', label: 'Dashboard', icon: <DashboardIcon /> },
-  { path: '/kyc', label: 'Partner KYC', icon: <VerifiedUserIcon /> },
-  { path: '/pricing', label: 'Service & Pricing', icon: <CategoryIcon /> },
-  { path: '/bookings', label: 'Bookings', icon: <EventNoteIcon /> },
-  { path: '/live', label: 'Live Monitor', icon: <LiveTvIcon /> },
-  { path: '/support', label: 'Disputes & Support', icon: <SupportAgentIcon /> },
-  { path: '/payouts', label: 'Payouts', icon: <PaymentsIcon /> },
-  { path: '/geo', label: 'Geo & Heatmaps', icon: <MapIcon /> },
-  { path: '/marketing', label: 'Coupons & Marketing', icon: <LocalOfferIcon /> },
-  { path: '/users', label: 'Users', icon: <PeopleIcon /> },
-  { path: '/partners', label: 'Partners', icon: <EngineeringIcon /> },
-  { path: '/notifications', label: 'Notifications', icon: <NotificationsIcon /> },
-  { path: '/settings', label: 'Settings', icon: <SettingsIcon /> },
-];
+const ICONS: Record<string, React.ReactNode> = {
+  '/': <DashboardIcon />,
+  '/analytics': <AnalyticsIcon />,
+  '/audit': <HistoryIcon />,
+  '/demand': <SearchIcon />,
+  '/kyc': <VerifiedUserIcon />,
+  '/strikes': <GavelIcon />,
+  '/pricing': <CategoryIcon />,
+  '/bookings': <EventNoteIcon />,
+  '/live': <LiveTvIcon />,
+  '/chat': <ChatIcon />,
+  '/support': <SupportAgentIcon />,
+  '/payouts': <PaymentsIcon />,
+  '/payroll': <AccountBalanceIcon />,
+  '/geo': <MapIcon />,
+  '/marketing': <LocalOfferIcon />,
+  '/users': <PeopleIcon />,
+  '/partners': <EngineeringIcon />,
+  '/notifications': <NotificationsIcon />,
+  '/settings': <SettingsIcon />,
+};
 
 export function AdminLayout() {
   const theme = useTheme();
@@ -61,6 +75,11 @@ export function AdminLayout() {
   const location = useLocation();
   const dispatch = useDispatch();
   const admin = useSelector((s: RootState) => s.auth.admin);
+  const role = normalizeRole(admin?.role);
+  const navItems = navItemsForRole(admin?.role).map((item) => ({
+    ...item,
+    icon: ICONS[item.path] || <DashboardIcon />,
+  }));
 
   const drawer = (
     <Box
@@ -80,6 +99,7 @@ export function AdminLayout() {
         <Typography variant="caption" sx={{ opacity: 0.9 }}>
           Admin Control Panel
         </Typography>
+        <Chip label={role.toUpperCase()} size="small" sx={{ mt: 1, bgcolor: 'rgba(255,255,255,0.2)', color: '#fff' }} />
       </Box>
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)', flexShrink: 0 }} />
       <List
@@ -138,7 +158,7 @@ export function AdminLayout() {
             {navItems.find((n) => n.path === location.pathname)?.label || 'Admin'}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
-            {admin?.name} ({admin?.role})
+            {admin?.name} ({role})
           </Typography>
           <IconButton
             color="primary"

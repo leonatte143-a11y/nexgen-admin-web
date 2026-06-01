@@ -19,6 +19,8 @@ import {
 import { formatPct } from '../utils/format';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { formatInr } from '../utils/format';
+import { Can } from '../components/Can';
+import { PERMISSIONS } from '../config/rbac';
 
 export function DashboardPage() {
   const { stats, chart, activity, extended, loading, error, reload } = useDashboardData();
@@ -46,14 +48,16 @@ export function DashboardPage() {
 
       {/* TOP: KPIs */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            title="Total Revenue"
-            value={formatInr(stats.totalRevenue)}
-            highlight
-            subtitle={`Today: ${formatInr(stats.revenueToday)} · ${stats.commissionRate}% commission`}
-          />
-        </Grid>
+        <Can permission={PERMISSIONS.REVENUE_VIEW}>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <StatCard
+              title="Total Revenue"
+              value={formatInr(stats.totalRevenue)}
+              highlight
+              subtitle={`Today: ${formatInr(stats.revenueToday)} · ${stats.commissionRate}% commission`}
+            />
+          </Grid>
+        </Can>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
             title="Active Partners"
@@ -79,16 +83,18 @@ export function DashboardPage() {
       <UrgentAlertsPanel alerts={alerts} />
 
       {/* TOP: Financial pipeline */}
-      <DashboardSection title="Financial Pipeline" subtitle="Revenue, payouts, escrow & income streams">
-        <FinancialPipeline
-          totalRevenue={financial.totalRevenue}
-          pendingPayouts={financial.pendingPayouts}
-          escrowBalance={financial.escrowBalance}
-          totalCommissionEarned={financial.totalCommissionEarned}
-          revenueToday={financial.revenueToday}
-          categories={financial.categories}
-        />
-      </DashboardSection>
+      <Can permission={PERMISSIONS.REVENUE_VIEW}>
+        <DashboardSection title="Financial Pipeline" subtitle="Revenue, payouts, escrow & income streams">
+          <FinancialPipeline
+            totalRevenue={financial.totalRevenue}
+            pendingPayouts={financial.pendingPayouts}
+            escrowBalance={financial.escrowBalance}
+            totalCommissionEarned={financial.totalCommissionEarned}
+            revenueToday={financial.revenueToday}
+            categories={financial.categories}
+          />
+        </DashboardSection>
+      </Can>
 
       {/* MIDDLE: Partner performance + Customer pulse */}
       <Grid container spacing={2} sx={{ mb: 3 }}>

@@ -27,6 +27,32 @@ export const adminApi = {
   searchAnalytics: () => apiGet<{ keyword: string; searches: number; avgPartnersFound: number; unmet: boolean }[]>('/admin/search-analytics'),
   heatmap: () => apiGet<unknown>('/admin/heatmap'),
 
+  auditLogs: (params?: Record<string, string>) =>
+    apiGet<{ items: unknown[]; total: number }>('/admin/audit-logs', params),
+  demandAnalytics: (params?: Record<string, string>) => apiGet<unknown[]>('/admin/demand-analytics', params),
+  demandSummary: () => apiGet<unknown>('/admin/demand-analytics/summary'),
+  analytics: (period: string) => apiGet<unknown>('/admin/analytics', { period }),
+  establishZone: (body: Record<string, unknown>) => apiPost('/admin/service-zones', body),
+
+  chats: () => apiGet<unknown[]>('/admin/chats'),
+  chatAlerts: () => apiGet<unknown[]>('/admin/chats/alerts'),
+  fraudFlags: () => apiGet<unknown[]>('/admin/fraud-flags'),
+
+  financePayouts: () => apiGet<unknown>('/admin/finance/payouts'),
+  generateFinancePayout: () => apiPost<{ csv: string; count: number }>('/admin/finance/payouts/generate'),
+  staffPayroll: () => apiGet<unknown[]>('/admin/finance/payroll'),
+  calculatePayroll: () => apiPost('/admin/finance/payroll/calculate'),
+
+  strikeBoard: () => apiGet<unknown[]>('/admin/partners/strike-board'),
+  warnPartner: (id: string, reason?: string) => apiPost(`/admin/partners/${id}/warn`, { reason }),
+  freezePartner: (id: string, days?: number) => apiPost(`/admin/partners/${id}/freeze`, { days }),
+  blockPartner: (id: string) => apiPost(`/admin/partners/${id}/block`),
+  archivePartner: (id: string) => apiPost(`/admin/partners/${id}/archive`),
+
+  onlinePartners: () => apiGet<unknown[]>('/admin/bookings/online-partners'),
+  reassignBooking: (bookingId: string, newPartnerId: string, reason?: string) =>
+    apiPost(`/admin/bookings/${bookingId}/reassign`, { newPartnerId, reason }),
+
   partners: (params?: Record<string, string>) => apiGet<unknown[]>('/admin/partners', params),
   pendingKyc: () => apiGet<unknown[]>('/admin/partners/kyc/pending'),
   approveKyc: (id: string) => apiPost(`/admin/partners/kyc/${id}/approve`),

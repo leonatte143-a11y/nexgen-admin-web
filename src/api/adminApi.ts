@@ -58,6 +58,13 @@ export const adminApi = {
   approveKyc: (id: string) => apiPost(`/admin/partners/kyc/${id}/approve`),
   rejectKyc: (id: string, reason?: string) => apiPost(`/admin/partners/kyc/${id}/reject`, { reason }),
 
+  pendingPartnerPrices: () => apiGet<unknown[]>('/admin/partner-prices/pending'),
+  approvePartnerPrice: (id: string) => apiPost(`/admin/partner-prices/${id}/approve`, {}),
+  rejectPartnerPrice: (id: string, reason: string) =>
+    apiPost(`/admin/partner-prices/${id}/reject`, { reason }),
+
+  getBooking: (id: string) => apiGet<Record<string, unknown>>(`/admin/bookings/${id}`),
+
   categories: () => apiGet<unknown[]>('/admin/categories'),
   updateCategory: (id: string, body: unknown) => apiPut(`/admin/categories/${id}`, body),
   services: () => apiGet<unknown[]>('/admin/services'),

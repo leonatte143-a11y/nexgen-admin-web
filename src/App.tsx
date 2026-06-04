@@ -5,6 +5,7 @@ import { store } from './store';
 import { theme } from './theme';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleRoute } from './components/RoleRoute';
+import { AdminOnlyRoute } from './components/AdminOnlyRoute';
 import { AdminLayout } from './layouts/AdminLayout';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -14,6 +15,7 @@ import { DemandAnalyticsPage } from './pages/DemandAnalyticsPage';
 import { KycPage } from './pages/KycPage';
 import { StrikeBoardPage } from './pages/StrikeBoardPage';
 import { PricingPage } from './pages/PricingPage';
+import { PartnerPriceReviewPage } from './pages/PartnerPriceReviewPage';
 import { BookingsPage } from './pages/BookingsPage';
 import { LiveBookingsPage } from './pages/LiveBookingsPage';
 import { ChatMonitorPage } from './pages/ChatMonitorPage';
@@ -56,6 +58,9 @@ export default function App() {
                 </Route>
                 <Route element={<RoleRoute permission={[PERMISSIONS.PRICING_MANAGE, PERMISSIONS.SERVICES_MANAGE]} />}>
                   <Route path="pricing" element={<PricingPage />} />
+                </Route>
+                <Route element={<AdminOnlyRoute />}>
+                  <Route path="partner-prices" element={<PartnerPriceReviewPage />} />
                 </Route>
                 <Route element={<RoleRoute permission={PERMISSIONS.BOOKINGS_MANAGE} />}>
                   <Route path="bookings" element={<BookingsPage />} />

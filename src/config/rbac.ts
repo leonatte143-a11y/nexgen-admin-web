@@ -86,6 +86,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/kyc', label: 'Partner KYC', permission: PERMISSIONS.KYC_MANAGE },
   { path: '/strikes', label: 'Strike Board', permission: PERMISSIONS.PARTNERS_COMPLIANCE },
   { path: '/pricing', label: 'Service & Pricing', permission: [PERMISSIONS.PRICING_MANAGE, PERMISSIONS.SERVICES_MANAGE] },
+  { path: '/partner-prices', label: 'Partner Price Review', permission: PERMISSIONS.PRICING_MANAGE },
   { path: '/bookings', label: 'Bookings', permission: PERMISSIONS.BOOKINGS_MANAGE },
   { path: '/live', label: 'Live Monitor', permission: PERMISSIONS.LIVE_MONITOR },
   { path: '/chat', label: 'Super Chat', permission: PERMISSIONS.CHAT_MONITOR },
@@ -100,8 +101,13 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/settings', label: 'Settings', permission: PERMISSIONS.SETTINGS_MANAGE },
 ];
 
+/** Sidebar entries restricted to full admin role (not manager/hr). */
+const ADMIN_ONLY_PATHS = new Set(['/partner-prices']);
+
 export function navItemsForRole(role?: string | null) {
+  const normalized = normalizeRole(role);
   return NAV_ITEMS.filter((item) => {
+    if (ADMIN_ONLY_PATHS.has(item.path) && normalized !== 'admin') return false;
     const perms = Array.isArray(item.permission) ? item.permission : [item.permission];
     return hasAnyPermission(role, perms);
   });

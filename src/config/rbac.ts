@@ -1,5 +1,12 @@
 /** Mirrors backend src/constants/rbac.js — keep in sync for UI guards. */
-export type AdminRole = 'admin' | 'super_admin' | 'manager' | 'hr';
+export type AdminRole =
+  | 'admin'
+  | 'super_admin'
+  | 'manager'
+  | 'hr'
+  | 'marketing'
+  | 'client_support'
+  | 'recruitment_exec';
 
 export const PERMISSIONS = {
   DASHBOARD_VIEW: 'dashboard:view',
@@ -33,7 +40,15 @@ export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 export function normalizeRole(role?: string | null): AdminRole {
   const r = String(role || 'admin').toLowerCase();
   if (r === 'super_admin') return 'admin';
-  if (r === 'manager' || r === 'hr') return r;
+  if (
+    r === 'manager' ||
+    r === 'hr' ||
+    r === 'marketing' ||
+    r === 'client_support' ||
+    r === 'recruitment_exec'
+  ) {
+    return r;
+  }
   return 'admin';
 }
 
@@ -51,14 +66,29 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.SUPPORT_MANAGE,
     PERMISSIONS.PARTNERS_MANAGE,
     PERMISSIONS.CHAT_MONITOR,
+    PERMISSIONS.PRICING_MANAGE,
+    PERMISSIONS.SERVICES_MANAGE,
   ],
-  hr: [
+  hr: [PERMISSIONS.STAFF_MANAGE, PERMISSIONS.PAYROLL_VIEW],
+  marketing: [
     PERMISSIONS.DASHBOARD_VIEW,
+    PERMISSIONS.ANALYTICS_VIEW,
+    PERMISSIONS.DEMAND_ANALYTICS,
+    PERMISSIONS.MARKETING_MANAGE,
+    PERMISSIONS.NOTIFICATIONS_BROADCAST,
+  ],
+  client_support: [
+    PERMISSIONS.DASHBOARD_VIEW,
+    PERMISSIONS.ANALYTICS_VIEW,
+    PERMISSIONS.LIVE_MONITOR,
+    PERMISSIONS.BOOKINGS_MANAGE,
+    PERMISSIONS.CHAT_MONITOR,
+    PERMISSIONS.SUPPORT_MANAGE,
+  ],
+  recruitment_exec: [
     PERMISSIONS.KYC_MANAGE,
     PERMISSIONS.PARTNERS_MANAGE,
     PERMISSIONS.PARTNERS_COMPLIANCE,
-    PERMISSIONS.ANALYTICS_VIEW,
-    PERMISSIONS.SUPPORT_MANAGE,
   ],
 };
 
@@ -91,6 +121,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/live', label: 'Live Monitor', permission: PERMISSIONS.LIVE_MONITOR },
   { path: '/chat', label: 'Super Chat', permission: PERMISSIONS.CHAT_MONITOR },
   { path: '/support', label: 'Disputes & Support', permission: PERMISSIONS.SUPPORT_MANAGE },
+  { path: '/staff', label: 'Staff Management', permission: PERMISSIONS.STAFF_MANAGE },
   { path: '/payouts', label: 'Monday Settlement', permission: PERMISSIONS.PAYOUTS_MANAGE },
   { path: '/payroll', label: 'Staff Payroll', permission: PERMISSIONS.PAYROLL_VIEW },
   { path: '/geo', label: 'Geo & Heatmaps', permission: PERMISSIONS.DEMAND_ANALYTICS },
@@ -111,6 +142,11 @@ export function navItemsForRole(role?: string | null) {
     const perms = Array.isArray(item.permission) ? item.permission : [item.permission];
     return hasAnyPermission(role, perms);
   });
+}
+
+export function defaultPathForRole(role?: string | null): string {
+  const items = navItemsForRole(role);
+  return items[0]?.path || '/login';
 }
 
 export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[]> = Object.fromEntries(

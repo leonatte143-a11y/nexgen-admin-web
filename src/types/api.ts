@@ -9,11 +9,13 @@ export interface AdminUser {
   email: string;
   name: string;
   role: string;
+  mustResetPassword?: boolean;
 }
 
 export interface LoginResponse {
   token: string;
   admin: AdminUser;
+  mustResetPassword?: boolean;
 }
 
 export interface DashboardStats {

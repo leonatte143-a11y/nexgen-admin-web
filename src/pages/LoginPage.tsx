@@ -29,7 +29,10 @@ export function LoginPage() {
     e.preventDefault();
     dispatch(clearError());
     const result = await dispatch(loginAdmin({ email, password }));
-    if (loginAdmin.fulfilled.match(result)) navigate('/');
+    if (loginAdmin.fulfilled.match(result)) {
+      const mustReset = result.payload.mustResetPassword || result.payload.admin?.mustResetPassword;
+      navigate(mustReset ? '/reset-password' : '/');
+    }
   };
 
   return (

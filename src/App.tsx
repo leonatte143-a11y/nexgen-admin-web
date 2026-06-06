@@ -8,7 +8,6 @@ import { RoleRoute } from './components/RoleRoute';
 import { AdminOnlyRoute } from './components/AdminOnlyRoute';
 import { AdminLayout } from './layouts/AdminLayout';
 import { LoginPage } from './pages/LoginPage';
-import { DashboardPage } from './pages/DashboardPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
 import { DemandAnalyticsPage } from './pages/DemandAnalyticsPage';
@@ -28,6 +27,9 @@ import { UsersPage } from './pages/UsersPage';
 import { PartnersPage } from './pages/PartnersPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { StaffPage } from './pages/StaffPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { RoleHome } from './components/RoleHome';
 import { PERMISSIONS } from './config/rbac';
 
 export default function App() {
@@ -39,8 +41,9 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route element={<ProtectedRoute />}>
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route element={<AdminLayout />}>
-                <Route index element={<DashboardPage />} />
+                <Route index element={<RoleHome />} />
                 <Route element={<RoleRoute permission={PERMISSIONS.ANALYTICS_VIEW} />}>
                   <Route path="analytics" element={<AnalyticsPage />} />
                 </Route>
@@ -73,6 +76,9 @@ export default function App() {
                 </Route>
                 <Route element={<RoleRoute permission={PERMISSIONS.SUPPORT_MANAGE} />}>
                   <Route path="support" element={<SupportPage />} />
+                </Route>
+                <Route element={<RoleRoute permission={[PERMISSIONS.STAFF_MANAGE, PERMISSIONS.PAYROLL_VIEW]} />}>
+                  <Route path="staff" element={<StaffPage />} />
                 </Route>
                 <Route element={<RoleRoute permission={PERMISSIONS.PAYOUTS_MANAGE} />}>
                   <Route path="payouts" element={<PayoutsPage />} />

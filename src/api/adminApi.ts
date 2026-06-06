@@ -66,9 +66,18 @@ export const adminApi = {
   getBooking: (id: string) => apiGet<Record<string, unknown>>(`/admin/bookings/${id}`),
 
   categories: () => apiGet<unknown[]>('/admin/categories'),
+  createCategory: (body: unknown) => apiPost('/admin/categories', body),
   updateCategory: (id: string, body: unknown) => apiPut(`/admin/categories/${id}`, body),
   services: () => apiGet<unknown[]>('/admin/services'),
+  createService: (body: unknown) => apiPost('/admin/services', body),
   updateService: (id: string, body: unknown) => apiPut(`/admin/services/${id}`, body),
+
+  listStaff: () => apiGet<unknown[]>('/admin/staff'),
+  createStaff: (body: unknown) => apiPost<{ tempPassword?: string }>('/admin/staff', body),
+  updateStaff: (id: string, body: unknown) => apiPut(`/admin/staff/${id}`, body),
+
+  changePassword: (body: { currentPassword?: string; newPassword: string }) =>
+    apiPost('/auth/admin/change-password', body),
 
   bookings: (params?: Record<string, string>) => apiGet<{ items: unknown[]; total: number }>('/admin/bookings', params),
   liveBookings: () => apiGet<unknown[]>('/admin/bookings/live'),

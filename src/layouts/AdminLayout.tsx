@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
@@ -57,6 +57,7 @@ const ICONS: Record<string, React.ReactNode> = {
   '/live': <LiveTvIcon />,
   '/chat': <ChatIcon />,
   '/support': <SupportAgentIcon />,
+  '/staff': <PeopleIcon />,
   '/payouts': <PaymentsIcon />,
   '/payroll': <AccountBalanceIcon />,
   '/geo': <MapIcon />,
@@ -80,6 +81,10 @@ export function AdminLayout() {
     ...item,
     icon: ICONS[item.path] || <DashboardIcon />,
   }));
+
+  if (admin?.mustResetPassword) {
+    return <Navigate to="/reset-password" replace />;
+  }
 
   const drawer = (
     <Box

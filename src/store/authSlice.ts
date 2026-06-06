@@ -79,7 +79,12 @@ const authSlice = createSlice({
       .addCase(loginAdmin.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
-        state.admin = action.payload.admin;
+        state.admin = {
+          ...action.payload.admin,
+          mustResetPassword: Boolean(
+            action.payload.mustResetPassword ?? action.payload.admin?.mustResetPassword,
+          ),
+        };
       })
       .addCase(loginAdmin.rejected, (state, action) => {
         state.loading = false;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Paper, TextField, Button, Typography, Alert } from '@mui/material';
-import { apiPost } from '../api/client';
+import { apiPost, apiClient } from '../api/client';
 import { NEXGEN_ORANGE } from '../theme';
 import { defaultPathForRole } from '../config/rbac';
 import { useSelector } from 'react-redux';
@@ -14,6 +14,7 @@ export function ResetPasswordPage() {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,17 +26,34 @@ export function ResetPasswordPage() {
       setError('Passwords do not match');
       return;
     }
+    if (loading) return; // prevent duplicate submits
     setLoading(true);
     setError(null);
     try {
-      await apiPost('/auth/admin/change-password', { newPassword });
-      const raw = localStorage.getItem('nexgen_admin_user');
-      if (raw) {
-        const user = JSON.parse(raw);
-        user.mustResetPassword = false;
-        localStorage.setItem('nexgen_admin_user', JSON.stringify(user));
+      const token = localStorage.getItem('nexgen_admin_token');
+      if (token) {
+        await apiClient.post('/auth/admin/change-password', { newPassword }, { headers: { Authorization: `Bearer ${token}` } });
+      } else {
+        await apiPost('/auth/admin/change-password', { newPassword });
       }
-      navigate(defaultPathForRole(admin?.role));
+
+      // Clear sensitive auth state and ensure force-reset flag is removed
+      try {
+        localStorage.removeItem('nexgen_admin_token');
+        localStorage.removeItem('nexgen_admin_user');
+      } catch (e) {
+        // ignore localStorage errors
+      }
+
+      // Clear fields and show success message then redirect to login
+      setNewPassword('');
+      setConfirm('');
+      setSuccess('Password changed successfully. Please login with your new password.');
+
+      // short delay for user to read message
+      setTimeout(() => {
+        navigate('/login', { state: { passwordChanged: true } });
+      }, 1200);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Password change failed');
     } finally {
@@ -53,6 +71,7 @@ export function ResetPasswordPage() {
           You must change your temporary password before accessing the admin panel.
         </Typography>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
         <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField label="New Password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required fullWidth />
           <TextField label="Confirm Password" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required fullWidth />

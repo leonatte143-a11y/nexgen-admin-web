@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -24,6 +24,8 @@ export function LoginPage() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { loading, error } = useSelector((s: RootState) => s.auth);
+  const location = useLocation();
+  const passwordChanged = Boolean((location.state as any)?.passwordChanged);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +66,11 @@ export function LoginPage() {
           Sign in to the control panel
         </Typography>
 
+        {passwordChanged && (
+          <Alert severity="success" sx={{ mb: 2, py: 0.5 }}>
+            Password changed successfully. Please login with your new password.
+          </Alert>
+        )}
         {error && (
           <Alert severity="error" sx={{ mb: 2, py: 0.5 }}>
             {error}

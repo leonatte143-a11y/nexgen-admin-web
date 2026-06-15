@@ -92,6 +92,8 @@ export const adminApi = {
   refund: (id: string) => apiPost(`/admin/support/tickets/${id}/refund`),
 
   payoutQueue: () => apiGet<unknown>('/admin/payouts/queue'),
+  approvePayout: (id: string) => apiPost<unknown>(`/admin/payouts/${id}/approve`, {}),
+  rejectPayout: (id: string) => apiPost<unknown>(`/admin/payouts/${id}/reject`, {}),
   generatePayout: () => apiPost<{ csv: string; count: number }>('/admin/payouts/generate'),
   settlementHistory: () => apiGet<unknown[]>('/admin/payouts/history'),
   commissionReport: () => apiGet<unknown>('/admin/payouts/commission-report'),
@@ -108,4 +110,14 @@ export const adminApi = {
   updateSettings: (body: Record<string, unknown>) => apiPut('/admin/settings', body),
   geoZones: () => apiGet<unknown[]>('/admin/geo/zones'),
   setSurge: (city: string, surgeFee: number) => apiPost('/admin/geo/surge', { city, surgeFee }),
+
+  pendingShops: () => apiGet<unknown[]>('/admin/shops/pending'),
+  listShops: () => apiGet<unknown[]>('/admin/shops'),
+  approveShop: (id: string) => apiPost(`/admin/shops/${id}/approve`, {}),
+  rejectShop: (id: string, reason?: string) => apiPost(`/admin/shops/${id}/reject`, { reason }),
+  setShopFeatured: (id: string, featured: boolean) =>
+    apiPost(`/admin/shops/${id}/featured`, { featured }),
+  shopLeadStats: () => apiGet<unknown>('/admin/shops/leads'),
+  shopCategories: () => apiGet<unknown[]>('/admin/shop-categories'),
+  createShopCategory: (body: { name: string; id?: string }) => apiPost('/admin/shop-categories', body),
 };

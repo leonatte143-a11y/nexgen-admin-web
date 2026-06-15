@@ -33,6 +33,8 @@ export const PERMISSIONS = {
   PAYROLL_VIEW: 'payroll:view',
   CHAT_MONITOR: 'chat:monitor',
   FRAUD_VIEW: 'fraud:view',
+  SHOPS_MANAGE: 'shops:manage',
+  SHOPS_VERIFY: 'shops:verify',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -68,6 +70,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.CHAT_MONITOR,
     PERMISSIONS.PRICING_MANAGE,
     PERMISSIONS.SERVICES_MANAGE,
+    PERMISSIONS.SHOPS_VERIFY,
   ],
   hr: [PERMISSIONS.STAFF_MANAGE, PERMISSIONS.PAYROLL_VIEW],
   marketing: [
@@ -128,6 +131,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/marketing', label: 'Coupons & Marketing', permission: PERMISSIONS.MARKETING_MANAGE },
   { path: '/users', label: 'Users', permission: PERMISSIONS.USERS_MANAGE },
   { path: '/partners', label: 'Partners', permission: PERMISSIONS.PARTNERS_MANAGE },
+  { path: '/shops', label: 'Shops & Market', permission: [PERMISSIONS.SHOPS_VERIFY, PERMISSIONS.SHOPS_MANAGE] },
   { path: '/notifications', label: 'Notifications', permission: PERMISSIONS.NOTIFICATIONS_BROADCAST },
   { path: '/settings', label: 'Settings', permission: PERMISSIONS.SETTINGS_MANAGE },
 ];

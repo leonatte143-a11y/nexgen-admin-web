@@ -3,13 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Paper, TextField, Button, Typography, Alert } from '@mui/material';
 import { apiPost, apiClient } from '../api/client';
 import { NEXGEN_ORANGE } from '../theme';
-import { defaultPathForRole } from '../config/rbac';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../store';
 
 export function ResetPasswordPage() {
   const navigate = useNavigate();
-  const admin = useSelector((s: RootState) => s.auth.admin);
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);

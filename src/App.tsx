@@ -29,6 +29,7 @@ import { NotificationsPage } from './pages/NotificationsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { StaffPage } from './pages/StaffPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { ShopsPage } from './pages/ShopsPage';
 import { RoleHome } from './components/RoleHome';
 import { PERMISSIONS } from './config/rbac';
 
@@ -97,6 +98,9 @@ export default function App() {
                 </Route>
                 <Route element={<RoleRoute permission={PERMISSIONS.PARTNERS_MANAGE} />}>
                   <Route path="partners" element={<PartnersPage />} />
+                </Route>
+                <Route element={<RoleRoute permission={[PERMISSIONS.SHOPS_VERIFY, PERMISSIONS.SHOPS_MANAGE]} />}>
+                  <Route path="shops" element={<ShopsPage />} />
                 </Route>
                 <Route element={<RoleRoute permission={PERMISSIONS.NOTIFICATIONS_BROADCAST} />}>
                   <Route path="notifications" element={<NotificationsPage />} />

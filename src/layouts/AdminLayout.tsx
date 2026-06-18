@@ -64,6 +64,7 @@ const ICONS: Record<string, React.ReactNode> = {
   '/marketing': <LocalOfferIcon />,
   '/users': <PeopleIcon />,
   '/partners': <EngineeringIcon />,
+  '/shops': <LocalOfferIcon />,
   '/notifications': <NotificationsIcon />,
   '/settings': <SettingsIcon />,
 };

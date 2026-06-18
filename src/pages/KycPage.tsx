@@ -10,10 +10,14 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogContentText,
+  DialogActions,
   Box,
   Typography,
   Stack,
 } from '@mui/material';
+import { Can } from '../components/Can';
+import { PERMISSIONS } from '../config/rbac';
 import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
@@ -44,6 +48,8 @@ function normalizeCategories(categories: string[] | string | undefined): string 
 
 export function KycPage() {
   const [selected, setSelected] = useState<KycRow | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPending = useCallback(() => adminApi.pendingKyc() as Promise<KycRow[]>, []);
 
@@ -58,6 +64,21 @@ export function KycPage() {
     } catch (e) {
       // reload will surface errors; keep dialog open on action failure
       console.error(e);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!selected) return;
+    setDeleting(true);
+    try {
+      await adminApi.archivePartner(selected.id);
+      setDeleteOpen(false);
+      setSelected(null);
+      await reload();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -128,17 +149,37 @@ export function KycPage() {
                   </Box>
                 ))}
               </Stack>
-              <Stack direction="row" sx={{ gap: 1 }}>
+              <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
                 <Button variant="contained" color="success" onClick={() => act(selected.id, true)}>
                   Approve
                 </Button>
                 <Button variant="contained" color="error" onClick={() => act(selected.id, false)}>
                   Reject
                 </Button>
+                <Can permission={PERMISSIONS.PARTNERS_COMPLIANCE}>
+                  <Button variant="outlined" color="error" onClick={() => setDeleteOpen(true)}>
+                    Delete Partner
+                  </Button>
+                </Can>
               </Stack>
             </DialogContent>
           </>
         )}
+      </Dialog>
+
+      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)}>
+        <DialogTitle>Delete Partner?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure? This will remove the partner from the app. Their booking and financial history will be retained for auditing.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteOpen(false)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={confirmDelete} disabled={deleting}>
+            Delete Partner
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   );

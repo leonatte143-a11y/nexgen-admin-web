@@ -21,6 +21,7 @@ import {
   Typography,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
@@ -74,6 +75,7 @@ export function PricingPage() {
     basePrice: '',
     commissionPercent: '10',
   });
+  const [deleteCat, setDeleteCat] = useState<CategoryRow | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -146,6 +148,12 @@ export function PricingPage() {
 
   if (loading) return <LoadingState />;
 
+  const serviceCountByCategory = rows.reduce<Record<string, number>>((acc, r) => {
+    const cid = r.categoryId || r.categoryLabel;
+    if (cid) acc[cid] = (acc[cid] || 0) + 1;
+    return acc;
+  }, {});
+
   return (
     <>
       <PageHeader
@@ -186,6 +194,7 @@ export function PricingPage() {
             <TableCell>Min (Floor)</TableCell>
             <TableCell>Max (Ceiling)</TableCell>
             <TableCell>Status</TableCell>
+            <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -196,6 +205,11 @@ export function PricingPage() {
               <TableCell>{c.maxPrice != null ? `₹${c.maxPrice}` : '—'}</TableCell>
               <TableCell>
                 <Chip label={c.isActive !== false ? 'Active' : 'Inactive'} size="small" color={c.isActive !== false ? 'success' : 'default'} />
+              </TableCell>
+              <TableCell align="right">
+                <IconButton size="small" color="error" onClick={() => setDeleteCat(c)} title="Delete category">
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
               </TableCell>
             </TableRow>
           ))}
@@ -289,6 +303,39 @@ export function PricingPage() {
         <DialogActions>
           <Button onClick={() => setSvcOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={saveService}>Create Service</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!deleteCat} onClose={() => setDeleteCat(null)}>
+        <DialogTitle>Delete category — {deleteCat?.nameEn}</DialogTitle>
+        <DialogContent>
+          {(serviceCountByCategory[deleteCat?.id || ''] || 0) > 0 ? (
+            <Typography color="error">
+              This category has {serviceCountByCategory[deleteCat?.id || '']} active service(s). Remove or reassign them before deleting.
+            </Typography>
+          ) : (
+            <Typography>Permanently deactivate this category?</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteCat(null)}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            disabled={(serviceCountByCategory[deleteCat?.id || ''] || 0) > 0}
+            onClick={async () => {
+              if (!deleteCat) return;
+              try {
+                await adminApi.deleteCategory(deleteCat.id);
+                setDeleteCat(null);
+                await load();
+              } catch (e) {
+                setError(e instanceof Error ? e.message : 'Delete failed');
+              }
+            }}
+          >
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
     </>

@@ -71,15 +71,30 @@ export function LiveBookingsPage() {
               <Typography variant="body2" color="text.secondary">
                 Partner: {String((b.partner as { name?: string })?.name || b.partnerName || 'Unassigned')}
               </Typography>
-              <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Box sx={{ mt: 1, display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                 <Chip label={String(b.partnerStatus)} color="primary" size="small" />
                 <Chip label={`₹${b.totalAmount}`} size="small" />
+                {Boolean(b.hasCustomRequest) ? (
+                  <Chip label="Alert: Custom Request" color="warning" size="small" />
+                ) : null}
+                {b.paymentStatus ? (
+                  <Chip
+                    label={String(b.paymentStatus) === 'paid' ? 'Paid' : 'Payment pending'}
+                    color={String(b.paymentStatus) === 'paid' ? 'success' : 'default'}
+                    size="small"
+                  />
+                ) : null}
                 <Can permission={PERMISSIONS.BOOKINGS_REASSIGN}>
                   <Button size="small" variant="outlined" onClick={() => openReassign(String(b.id))}>
                     Change Partner
                   </Button>
                 </Can>
               </Box>
+              {b.customRequirements ? (
+                <Typography variant="body2" sx={{ mt: 1, p: 1.5, bgcolor: '#fff3e0', borderRadius: 1, border: '1px solid #ff9800' }}>
+                  <strong>Custom request:</strong> {String(b.customRequirements)}
+                </Typography>
+              ) : null}
             </CardContent>
           </Card>
         ))}

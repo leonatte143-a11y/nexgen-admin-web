@@ -17,7 +17,11 @@ import { LoadingState } from '../components/LoadingState';
 import { ErrorAlert } from '../components/ErrorAlert';
 
 export function PayoutsPage() {
-  const [queue, setQueue] = useState<{ threshold: number; partners: Record<string, unknown>[] } | null>(null);
+  const [queue, setQueue] = useState<{
+    threshold: number;
+    partners: Record<string, unknown>[];
+    pendingRequests?: Record<string, unknown>[];
+  } | null>(null);
   const [history, setHistory] = useState<Record<string, unknown>[]>([]);
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [csv, setCsv] = useState<string | null>(null);
@@ -57,6 +61,24 @@ export function PayoutsPage() {
     }
   };
 
+  const approve = async (id: string) => {
+    try {
+      await adminApi.approvePayout(id);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Approve failed');
+    }
+  };
+
+  const reject = async (id: string) => {
+    try {
+      await adminApi.rejectPayout(id);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Reject failed');
+    }
+  };
+
   if (loading) return <LoadingState />;
   return (
     <>
@@ -75,6 +97,34 @@ export function PayoutsPage() {
         </Card>
       )}
       {csv && <Alert severity="success" sx={{ mb: 2, whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: 11 }}>{csv.slice(0, 500)}…</Alert>}
+      {queue?.pendingRequests && queue.pendingRequests.length > 0 ? (
+        <>
+          <Typography variant="subtitle1" gutterBottom>Partner withdrawal requests (pending approval)</Typography>
+          <Table size="small" sx={{ mb: 3 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell>Partner ID</TableCell>
+                <TableCell>Amount</TableCell>
+                <TableCell>Bank</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {queue.pendingRequests.map((p) => (
+                <TableRow key={String(p.id)}>
+                  <TableCell>{String(p.partnerId)}</TableCell>
+                  <TableCell>₹{String(p.amount)}</TableCell>
+                  <TableCell>{String(p.bankName)} {String(p.bankAccount)}</TableCell>
+                  <TableCell align="right">
+                    <Button size="small" onClick={() => approve(String(p.id))}>Approve</Button>
+                    <Button size="small" color="error" onClick={() => reject(String(p.id))}>Reject</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
+      ) : null}
       <Typography variant="subtitle1" gutterBottom>Eligible partners (≥ ₹{queue?.threshold})</Typography>
       <Table size="small" sx={{ mb: 3 }}>
         <TableHead>

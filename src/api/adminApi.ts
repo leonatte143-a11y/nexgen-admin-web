@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from './client';
+import { apiGet, apiPost, apiPut, apiDelete } from './client';
 import type { DashboardStats, BookingChartPoint, LoginResponse } from '../types/api';
 import type {
   DashboardAlertsResponse,
@@ -24,7 +24,17 @@ export const adminApi = {
   reviewsSentiment: (limit = 10) => apiGet<CustomerPulseData & { negativeReviewCount: number }>('/admin/dashboard/reviews-sentiment', { limit }),
   supportChatSummary: () => apiGet<SupportChatSummaryResponse>('/admin/dashboard/support-chat-summary'),
   dashboardAlerts: () => apiGet<DashboardAlertsResponse>('/admin/dashboard/alerts'),
-  searchAnalytics: () => apiGet<{ keyword: string; searches: number; avgPartnersFound: number; unmet: boolean }[]>('/admin/search-analytics'),
+  searchAnalytics: () =>
+    apiGet<
+      {
+        keyword: string;
+        searches: number;
+        avgPartnersFound: number;
+        unmet: boolean;
+        source?: string;
+        userCustomRequirements?: string;
+      }[]
+    >('/admin/search-analytics'),
   heatmap: () => apiGet<unknown>('/admin/heatmap'),
 
   auditLogs: (params?: Record<string, string>) =>
@@ -68,6 +78,7 @@ export const adminApi = {
   categories: () => apiGet<unknown[]>('/admin/categories'),
   createCategory: (body: unknown) => apiPost('/admin/categories', body),
   updateCategory: (id: string, body: unknown) => apiPut(`/admin/categories/${id}`, body),
+  deleteCategory: (id: string) => apiDelete(`/admin/categories/${id}`),
   services: () => apiGet<unknown[]>('/admin/services'),
   createService: (body: unknown) => apiPost('/admin/services', body),
   updateService: (id: string, body: unknown) => apiPut(`/admin/services/${id}`, body),
@@ -105,6 +116,13 @@ export const adminApi = {
   broadcast: (body: { title: string; body: string; city?: string; type?: string }) =>
     apiPost('/admin/notifications/broadcast', body),
   notifications: () => apiGet<unknown[]>('/admin/notifications'),
+  notificationCampaigns: () => apiGet<unknown[]>('/admin/notifications/campaigns'),
+  deactivateCampaign: (id: string) => apiPost(`/admin/notifications/campaigns/${id}/deactivate`, {}),
+
+  banners: () => apiGet<unknown[]>('/admin/banners'),
+  createBanner: (body: unknown) => apiPost('/admin/banners', body),
+  updateBanner: (id: string, body: unknown) => apiPut(`/admin/banners/${id}`, body),
+  deleteBanner: (id: string) => apiDelete(`/admin/banners/${id}`),
 
   settings: () => apiGet<Record<string, unknown>>('/admin/settings'),
   updateSettings: (body: Record<string, unknown>) => apiPut('/admin/settings', body),

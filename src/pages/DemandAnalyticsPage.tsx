@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Button, Card, CardContent, Grid, List, ListItem, ListItemText, Typography,
+  Table, TableHead, TableRow, TableCell, TableBody, Chip,
 } from '@mui/material';
 import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
@@ -24,6 +25,9 @@ interface Summary {
 
 export function DemandAnalyticsPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [searchRows, setSearchRows] = useState<
+    { keyword: string; searches: number; avgPartnersFound: number; unmet: boolean; userCustomRequirements?: string; source?: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -32,6 +36,7 @@ export function DemandAnalyticsPage() {
     setLoading(true);
     try {
       setSummary((await adminApi.demandSummary()) as Summary);
+      setSearchRows(await adminApi.searchAnalytics());
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Load failed');
@@ -122,6 +127,37 @@ export function DemandAnalyticsPage() {
           </Card>
         </Grid>
       </Grid>
+
+      <Typography variant="h6" sx={{ mt: 4, mb: 1 }}>Search Analytics</Typography>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>Keyword / Term</TableCell>
+            <TableCell>Searches</TableCell>
+            <TableCell>Avg partners found</TableCell>
+            <TableCell>Unmet demand</TableCell>
+            <TableCell>User Custom Requirements</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {searchRows.map((row) => (
+            <TableRow key={`${row.keyword}-${row.source || 'search'}`}>
+              <TableCell>{row.keyword}</TableCell>
+              <TableCell>{row.searches}</TableCell>
+              <TableCell>{row.avgPartnersFound}</TableCell>
+              <TableCell>{row.unmet ? <Chip size="small" color="warning" label="Unmet" /> : '—'}</TableCell>
+              <TableCell sx={{ maxWidth: 280 }}>
+                {row.userCustomRequirements || (row.source === 'custom_requirement' ? row.keyword : '—')}
+              </TableCell>
+            </TableRow>
+          ))}
+          {!searchRows.length ? (
+            <TableRow>
+              <TableCell colSpan={5} align="center">No search analytics yet</TableCell>
+            </TableRow>
+          ) : null}
+        </TableBody>
+      </Table>
     </>
   );
 }

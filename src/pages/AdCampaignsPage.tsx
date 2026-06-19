@@ -24,6 +24,7 @@ import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
 import { ErrorAlert } from '../components/ErrorAlert';
 import { NEXGEN_ORANGE } from '../theme';
+import { validateAdAssetFile, fileToDataUrl } from '../utils/adAssetValidation';
 
 type BannerRow = {
   id: string;
@@ -48,10 +49,12 @@ export function AdCampaignsPage() {
     subtitle: '',
     mediaUrl: '',
     mediaType: 'image',
+    placement: 'home_dashboard',
     targetUrl: '',
     city: '',
     priority: '10',
   });
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -69,21 +72,21 @@ export function AdCampaignsPage() {
     load();
   }, []);
 
-  const onFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const isVideo = ext === 'mp4';
-    const isImage = ['jpg', 'jpeg', 'png'].includes(ext);
-    if (!isVideo && !isImage) {
-      setError('Use .jpg, .png, or .mp4 files. Paste a hosted URL after upload.');
+    const mediaType = isVideo ? 'video' : 'image';
+    const validation = await validateAdAssetFile(file, mediaType);
+    if (!validation.ok) {
+      setError(validation.errors.join(' '));
       return;
     }
-    setForm((f) => ({
-      ...f,
-      mediaType: isVideo ? 'video' : 'image',
-    }));
-    setError(`Selected ${file.name}. Paste the hosted media URL below (CDN / server link).`);
+    const dataUrl = await fileToDataUrl(file);
+    setPreviewUrl(dataUrl);
+    setForm((f) => ({ ...f, mediaType, mediaUrl: dataUrl }));
+    setError(null);
   };
 
   const save = async () => {
@@ -97,6 +100,7 @@ export function AdCampaignsPage() {
         subtitle: form.subtitle.trim() || undefined,
         imageUrl: form.mediaUrl.trim(),
         mediaType: form.mediaType,
+        placement: form.placement,
         redirectType: 'external',
         redirectValue: form.targetUrl.trim(),
         city: form.city.trim() || undefined,
@@ -105,7 +109,8 @@ export function AdCampaignsPage() {
         ctaText: 'Learn more',
       });
       setOpen(false);
-      setForm({ title: '', subtitle: '', mediaUrl: '', mediaType: 'image', targetUrl: '', city: '', priority: '10' });
+      setForm({ title: '', subtitle: '', mediaUrl: '', mediaType: 'image', placement: 'home_dashboard', targetUrl: '', city: '', priority: '10' });
+      setPreviewUrl(null);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Save failed');
@@ -182,14 +187,37 @@ export function AdCampaignsPage() {
             </Box>
             <TextField
               select
-              label="Media type"
-              value={form.mediaType}
-              onChange={(e) => setForm({ ...form, mediaType: e.target.value })}
+              label="Placement"
+              value={form.placement}
+              onChange={(e) => setForm({ ...form, placement: e.target.value })}
               fullWidth
             >
-              <MenuItem value="image">Image poster</MenuItem>
-              <MenuItem value="video">Video (.mp4)</MenuItem>
+              <MenuItem value="home_dashboard">User Home Dashboard</MenuItem>
+              <MenuItem value="partner_live_tracking">Partner Tracking / Live Screen</MenuItem>
             </TextField>
+            <Box sx={{ p: 2, border: '1px dashed #ff9800', borderRadius: 2, bgcolor: '#fafafa' }}>
+              <Typography variant="caption" color="text.secondary">Placement preview</Typography>
+              <Box
+                sx={{
+                  mt: 1,
+                  height: form.placement === 'partner_live_tracking' ? 50 : 120,
+                  bgcolor: '#eee',
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                }}
+              >
+                {previewUrl && form.mediaType === 'image' ? (
+                  <Box component="img" src={previewUrl} alt="preview" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : previewUrl && form.mediaType === 'video' ? (
+                  <Box component="video" src={previewUrl} muted autoPlay loop sx={{ width: '100%', height: '100%' }} />
+                ) : (
+                  <Typography variant="caption">Upload asset to preview</Typography>
+                )}
+              </Box>
+            </Box>
             <TextField
               label="Media URL (required)"
               value={form.mediaUrl}

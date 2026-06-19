@@ -56,6 +56,9 @@ export const adminApi = {
   strikeBoard: () => apiGet<unknown[]>('/admin/partners/strike-board'),
   warnPartner: (id: string, reason?: string) => apiPost(`/admin/partners/${id}/warn`, { reason }),
   freezePartner: (id: string, days?: number) => apiPost(`/admin/partners/${id}/freeze`, { days }),
+  unfreezePartner: (id: string) => apiPost(`/admin/partners/${id}/unfreeze`, {}),
+  hoverMeta: (kind: string, id: string) =>
+    apiGet<Record<string, unknown>>('/admin/hover-meta', { kind, id }),
   blockPartner: (id: string) => apiPost(`/admin/partners/${id}/block`),
   archivePartner: (id: string) => apiPost(`/admin/partners/${id}/archive`),
 
@@ -82,6 +85,7 @@ export const adminApi = {
   services: () => apiGet<unknown[]>('/admin/services'),
   createService: (body: unknown) => apiPost('/admin/services', body),
   updateService: (id: string, body: unknown) => apiPut(`/admin/services/${id}`, body),
+  deleteService: (id: string) => apiDelete(`/admin/services/${id}`),
 
   listStaff: () => apiGet<unknown[]>('/admin/staff'),
   createStaff: (body: unknown) => apiPost<{ tempPassword?: string }>('/admin/staff', body),
@@ -113,8 +117,14 @@ export const adminApi = {
   createCoupon: (body: unknown) => apiPost('/admin/coupons', body),
   updateCoupon: (id: string, body: unknown) => apiPut(`/admin/coupons/${id}`, body),
 
-  broadcast: (body: { title: string; body: string; city?: string; type?: string }) =>
-    apiPost('/admin/notifications/broadcast', body),
+  broadcast: (body: {
+    title: string;
+    body: string;
+    city?: string;
+    type?: string;
+    audience?: string;
+    expiresAt?: string;
+  }) => apiPost('/admin/notifications/broadcast', body),
   notifications: () => apiGet<unknown[]>('/admin/notifications'),
   notificationCampaigns: () => apiGet<unknown[]>('/admin/notifications/campaigns'),
   deactivateCampaign: (id: string) => apiPost(`/admin/notifications/campaigns/${id}/deactivate`, {}),

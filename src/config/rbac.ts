@@ -95,14 +95,23 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   ],
 };
 
-export function hasPermission(role: string | undefined | null, permission: Permission): boolean {
+export function hasPermission(
+  role: string | undefined | null,
+  permission: Permission,
+  customPermissions?: string[] | null,
+): boolean {
+  if (customPermissions?.length) return customPermissions.includes(permission);
   const normalized = normalizeRole(role);
   const perms = ROLE_PERMISSIONS[normalized] || ROLE_PERMISSIONS.admin;
   return perms.includes(permission);
 }
 
-export function hasAnyPermission(role: string | undefined | null, permissions: Permission[]): boolean {
-  return permissions.some((p) => hasPermission(role, p));
+export function hasAnyPermission(
+  role: string | undefined | null,
+  permissions: Permission[],
+  customPermissions?: string[] | null,
+): boolean {
+  return permissions.some((p) => hasPermission(role, p, customPermissions));
 }
 
 export interface NavItem {
@@ -140,12 +149,12 @@ export const NAV_ITEMS: NavItem[] = [
 /** Sidebar entries restricted to full admin role (not manager/hr). */
 const ADMIN_ONLY_PATHS = new Set(['/partner-prices']);
 
-export function navItemsForRole(role?: string | null) {
+export function navItemsForRole(role?: string | null, customPermissions?: string[] | null) {
   const normalized = normalizeRole(role);
   return NAV_ITEMS.filter((item) => {
     if (ADMIN_ONLY_PATHS.has(item.path) && normalized !== 'admin') return false;
     const perms = Array.isArray(item.permission) ? item.permission : [item.permission];
-    return hasAnyPermission(role, perms);
+    return hasAnyPermission(role, perms, customPermissions);
   });
 }
 

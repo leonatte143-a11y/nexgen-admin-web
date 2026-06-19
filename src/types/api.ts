@@ -10,6 +10,7 @@ export interface AdminUser {
   name: string;
   role: string;
   mustResetPassword?: boolean;
+  permissions?: string[];
 }
 
 export interface LoginResponse {

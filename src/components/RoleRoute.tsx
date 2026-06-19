@@ -9,8 +9,9 @@ interface RoleRouteProps {
 
 export function RoleRoute({ permission }: RoleRouteProps) {
   const role = useSelector((s: RootState) => s.auth.admin?.role);
+  const customPermissions = useSelector((s: RootState) => s.auth.admin?.permissions);
   const perms = Array.isArray(permission) ? permission : [permission];
-  if (!hasAnyPermission(role, perms)) {
+  if (!hasAnyPermission(role, perms, customPermissions)) {
     return <Navigate to={defaultPathForRole(role)} replace />;
   }
   return <Outlet />;

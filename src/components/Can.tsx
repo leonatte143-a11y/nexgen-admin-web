@@ -10,6 +10,7 @@ interface CanProps {
 
 export function Can({ permission, children, fallback = null }: CanProps) {
   const role = useSelector((s: RootState) => s.auth.admin?.role);
-  if (!hasPermission(role, permission)) return <>{fallback}</>;
+  const customPermissions = useSelector((s: RootState) => s.auth.admin?.permissions);
+  if (!hasPermission(role, permission, customPermissions)) return <>{fallback}</>;
   return <>{children}</>;
 }

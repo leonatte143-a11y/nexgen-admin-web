@@ -38,6 +38,8 @@ export function NotificationsPage() {
   const [body, setBody] = useState('');
   const [city, setCity] = useState('');
   const [type, setType] = useState('offer');
+  const [audience, setAudience] = useState('all_users');
+  const [expiresAt, setExpiresAt] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
@@ -56,7 +58,14 @@ export function NotificationsPage() {
 
   const send = async () => {
     try {
-      const res = await adminApi.broadcast({ title, body, city: city || undefined, type });
+      const res = await adminApi.broadcast({
+        title,
+        body,
+        city: city || undefined,
+        type,
+        audience,
+        expiresAt: expiresAt || undefined,
+      });
       setMsg(`Sent to ${(res as { sent: number }).sent} users`);
       setError(null);
       if (tab === 1) loadHub();
@@ -86,6 +95,20 @@ export function NotificationsPage() {
               <MenuItem value="alert">Live / Urgent alert</MenuItem>
               <MenuItem value="order">Booking update</MenuItem>
             </TextField>
+            <TextField select fullWidth label="Target audience" value={audience} onChange={(e) => setAudience(e.target.value)} margin="normal">
+              <MenuItem value="all_users">All Users</MenuItem>
+              <MenuItem value="partners">Service Partners</MenuItem>
+              <MenuItem value="shops">Shops</MenuItem>
+            </TextField>
+            <TextField
+              fullWidth
+              type="datetime-local"
+              label="Set expiration (optional)"
+              value={expiresAt}
+              onChange={(e) => setExpiresAt(e.target.value)}
+              margin="normal"
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
             <Button variant="contained" onClick={send} sx={{ mt: 2 }}>Broadcast</Button>
           </CardContent>
         </Card>

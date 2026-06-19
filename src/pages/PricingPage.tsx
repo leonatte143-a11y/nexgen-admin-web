@@ -34,6 +34,7 @@ interface ServiceRow {
   categoryLabel: string;
   categoryId?: string;
   basePrice: number;
+  premiumPrice?: number;
   commissionPercent: number;
   isActive?: boolean;
 }
@@ -55,7 +56,9 @@ export function PricingPage() {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [edit, setEdit] = useState<ServiceRow | null>(null);
   const [price, setPrice] = useState('');
+  const [premiumPrice, setPremiumPrice] = useState('');
   const [commission, setCommission] = useState('');
+  const [deleteSvc, setDeleteSvc] = useState<ServiceRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,6 +106,7 @@ export function PricingPage() {
     try {
       await adminApi.updateService(edit.id, {
         basePrice: Number(price),
+        premiumPrice: premiumPrice ? Number(premiumPrice) : null,
         commissionPercent: Number(commission),
       });
       setEdit(null);
@@ -223,8 +227,9 @@ export function PricingPage() {
             <TableCell>Service</TableCell>
             <TableCell>Category</TableCell>
             <TableCell>Base Price</TableCell>
+            <TableCell>Premium Price</TableCell>
             <TableCell>Commission %</TableCell>
-            <TableCell align="right">Edit</TableCell>
+            <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -233,6 +238,7 @@ export function PricingPage() {
               <TableCell>{r.name}</TableCell>
               <TableCell>{r.categoryLabel}</TableCell>
               <TableCell>₹{r.basePrice}</TableCell>
+              <TableCell>₹{r.premiumPrice ?? r.basePrice}</TableCell>
               <TableCell>{r.commissionPercent ?? 10}%</TableCell>
               <TableCell align="right">
                 <IconButton
@@ -240,10 +246,14 @@ export function PricingPage() {
                   onClick={() => {
                     setEdit(r);
                     setPrice(String(r.basePrice));
+                    setPremiumPrice(String(r.premiumPrice ?? r.basePrice));
                     setCommission(String(r.commissionPercent ?? 10));
                   }}
                 >
                   <EditIcon />
+                </IconButton>
+                <IconButton size="small" color="error" onClick={() => setDeleteSvc(r)}>
+                  <DeleteIcon fontSize="small" />
                 </IconButton>
               </TableCell>
             </TableRow>
@@ -255,6 +265,7 @@ export function PricingPage() {
         <DialogTitle>Edit pricing — {edit?.name}</DialogTitle>
         <DialogContent sx={{ pt: 2, minWidth: 320 }}>
           <TextField fullWidth label="Base Price (₹)" value={price} onChange={(e) => setPrice(e.target.value)} margin="dense" />
+          <TextField fullWidth label="Premium Price (₹)" value={premiumPrice} onChange={(e) => setPremiumPrice(e.target.value)} margin="dense" />
           <TextField fullWidth label="Commission %" value={commission} onChange={(e) => setCommission(e.target.value)} margin="dense" />
         </DialogContent>
         <DialogActions>
@@ -303,6 +314,32 @@ export function PricingPage() {
         <DialogActions>
           <Button onClick={() => setSvcOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={saveService}>Create Service</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!deleteSvc} onClose={() => setDeleteSvc(null)}>
+        <DialogTitle>Delete service — {deleteSvc?.name}</DialogTitle>
+        <DialogContent>
+          <Typography>This will archive the service from the live catalog.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteSvc(null)}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={async () => {
+              if (!deleteSvc) return;
+              try {
+                await adminApi.deleteService(deleteSvc.id);
+                setDeleteSvc(null);
+                await load();
+              } catch (e) {
+                setError(e instanceof Error ? e.message : 'Delete failed');
+              }
+            }}
+          >
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
 

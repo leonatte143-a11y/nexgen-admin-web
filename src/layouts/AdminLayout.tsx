@@ -78,7 +78,7 @@ export function AdminLayout() {
   const dispatch = useDispatch();
   const admin = useSelector((s: RootState) => s.auth.admin);
   const role = normalizeRole(admin?.role);
-  const navItems = navItemsForRole(admin?.role).map((item) => ({
+  const navItems = navItemsForRole(admin?.role, admin?.permissions).map((item) => ({
     ...item,
     icon: ICONS[item.path] || <DashboardIcon />,
   }));

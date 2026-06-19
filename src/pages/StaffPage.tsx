@@ -16,6 +16,9 @@ import {
   Alert,
   Stack,
   Box,
+  Typography,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
@@ -25,6 +28,17 @@ import { Can } from '../components/Can';
 import { PERMISSIONS, normalizeRole } from '../config/rbac';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
+
+const PERMISSION_OPTIONS = [
+  { value: PERMISSIONS.PAYROLL_VIEW, label: 'Can View Payroll' },
+  { value: PERMISSIONS.PRICING_MANAGE, label: 'Can Edit Pricing' },
+  { value: PERMISSIONS.KYC_MANAGE, label: 'Can Access KYC' },
+  { value: PERMISSIONS.PARTNERS_MANAGE, label: 'Can Manage Partners' },
+  { value: PERMISSIONS.BOOKINGS_MANAGE, label: 'Can Manage Bookings' },
+  { value: PERMISSIONS.LIVE_MONITOR, label: 'Can View Live Monitor' },
+  { value: PERMISSIONS.MARKETING_MANAGE, label: 'Can Manage Marketing' },
+  { value: PERMISSIONS.NOTIFICATIONS_BROADCAST, label: 'Can Broadcast Notifications' },
+];
 
 const ROLE_OPTIONS = [
   { value: 'manager', label: 'Manager' },
@@ -62,6 +76,7 @@ export function StaffPage() {
     baseSalary: '',
     upiId: '',
   });
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
   const load = async () => {
     setLoading(true);
@@ -89,10 +104,12 @@ export function StaffPage() {
         designation: form.designation || undefined,
         baseSalary: form.baseSalary ? Number(form.baseSalary) : undefined,
         upiId: form.upiId || undefined,
+        permissions: selectedPermissions.length ? selectedPermissions : undefined,
       }) as { tempPassword?: string };
       setTempPassword(res.tempPassword || null);
       setOpen(false);
       setForm({ name: '', email: '', phone: '', role: 'manager', designation: '', baseSalary: '', upiId: '' });
+      setSelectedPermissions([]);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Create failed');
@@ -193,6 +210,25 @@ export function StaffPage() {
             <Box sx={{ display: 'flex', gap: 2 }}>
               <TextField label="Base Salary (₹)" value={form.baseSalary} onChange={(e) => setForm({ ...form, baseSalary: e.target.value })} fullWidth />
               <TextField label="UPI ID" value={form.upiId} onChange={(e) => setForm({ ...form, upiId: e.target.value })} fullWidth />
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Module permissions</Typography>
+              {PERMISSION_OPTIONS.map((opt) => (
+                <FormControlLabel
+                  key={opt.value}
+                  control={
+                    <Switch
+                      checked={selectedPermissions.includes(opt.value)}
+                      onChange={(e) => {
+                        setSelectedPermissions((prev) =>
+                          e.target.checked ? [...prev, opt.value] : prev.filter((p) => p !== opt.value),
+                        );
+                      }}
+                    />
+                  }
+                  label={opt.label}
+                />
+              ))}
+            </Box>
             </Box>
           </Stack>
         </DialogContent>

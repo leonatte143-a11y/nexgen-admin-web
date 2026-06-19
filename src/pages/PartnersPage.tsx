@@ -13,6 +13,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
@@ -20,6 +22,7 @@ import { LoadingState } from '../components/LoadingState';
 import { ErrorAlert } from '../components/ErrorAlert';
 import { Can } from '../components/Can';
 import { PERMISSIONS } from '../config/rbac';
+import { useHoverMeta } from '../components/HoverMetaTooltip';
 
 export function PartnersPage() {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
@@ -29,6 +32,7 @@ export function PartnersPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteName, setDeleteName] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const { onEnter, onLeave, tooltip } = useHoverMeta('partner');
 
   const load = async () => {
     setLoading(true);
@@ -45,6 +49,16 @@ export function PartnersPage() {
   useEffect(() => {
     load();
   }, []);
+
+  const toggleFreeze = async (id: string, frozen: boolean) => {
+    try {
+      if (frozen) await adminApi.unfreezePartner(id);
+      else await adminApi.freezePartner(id, 30);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Freeze update failed');
+    }
+  };
 
   const confirmDelete = async () => {
     if (!deleteId) return;
@@ -65,6 +79,7 @@ export function PartnersPage() {
     <>
       <PageHeader title="Partner Management" />
       <ErrorAlert message={error} />
+      {tooltip}
       <TextField size="small" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && load()} label="Search" sx={{ mb: 2 }} />
       <Table size="small">
         <TableHead>
@@ -76,12 +91,18 @@ export function PartnersPage() {
             <TableCell>Rating</TableCell>
             <TableCell>Strikes</TableCell>
             <TableCell>Status</TableCell>
+            <TableCell>Freeze</TableCell>
             <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {rows.map((p) => (
-            <TableRow key={String(p.id)}>
+            <TableRow
+              key={String(p.id)}
+              hover
+              onMouseEnter={(e) => onEnter(e, String(p.id))}
+              onMouseLeave={onLeave}
+            >
               <TableCell>{String(p.name)}</TableCell>
               <TableCell>{String(p.phone)}</TableCell>
               <TableCell>{p.isOnline ? <Chip label="Online" color="success" size="small" /> : <Chip label="Offline" size="small" />}</TableCell>
@@ -89,6 +110,20 @@ export function PartnersPage() {
               <TableCell>{String(p.rating)}</TableCell>
               <TableCell>{String(p.strikeCount ?? 0)}</TableCell>
               <TableCell>{String(p.verificationStatus)}</TableCell>
+              <TableCell>
+                <Can permission={PERMISSIONS.PARTNERS_COMPLIANCE}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        size="small"
+                        checked={Boolean(p.isFrozen)}
+                        onChange={() => toggleFreeze(String(p.id), Boolean(p.isFrozen))}
+                      />
+                    }
+                    label={p.isFrozen ? 'Frozen' : 'Active'}
+                  />
+                </Can>
+              </TableCell>
               <TableCell align="right">
                 <Can permission={PERMISSIONS.PARTNERS_COMPLIANCE}>
                   <Button

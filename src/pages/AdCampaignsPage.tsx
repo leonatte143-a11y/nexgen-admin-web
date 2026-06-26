@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -17,14 +17,21 @@ import {
   IconButton,
   Typography,
   Box,
+  Alert,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
 import { ErrorAlert } from '../components/ErrorAlert';
+import { PlacementPreviewContainer } from '../components/PlacementPreviewContainer';
 import { NEXGEN_ORANGE } from '../theme';
-import { validateAdAssetFile, fileToDataUrl } from '../utils/adAssetValidation';
+import {
+  AD_ASSET_SPECS,
+  type AdPlacement,
+  validateAdAssetFile,
+  fileToDataUrl,
+} from '../utils/adAssetValidation';
 
 type BannerRow = {
   id: string;
@@ -33,10 +40,17 @@ type BannerRow = {
   imageUrl?: string;
   mediaType?: string;
   mediaUrl?: string;
+  placement?: string;
   redirectType: string;
   redirectValue?: string;
   isActive?: boolean;
   priority?: number;
+  displayOrder?: number;
+};
+
+const PLACEMENT_LABELS: Record<string, string> = {
+  home_dashboard: 'Home Dashboard',
+  partner_live_tracking: 'Partner Live Map',
 };
 
 export function AdCampaignsPage() {
@@ -48,13 +62,16 @@ export function AdCampaignsPage() {
     title: '',
     subtitle: '',
     mediaUrl: '',
-    mediaType: 'image',
-    placement: 'home_dashboard',
+    mediaType: 'image' as 'image' | 'video',
+    placement: 'home_dashboard' as AdPlacement,
     targetUrl: '',
     city: '',
     priority: '10',
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [assetValid, setAssetValid] = useState(false);
+  const [assetErrors, setAssetErrors] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -72,14 +89,33 @@ export function AdCampaignsPage() {
     load();
   }, []);
 
+  const resetForm = () => {
+    setForm({
+      title: '',
+      subtitle: '',
+      mediaUrl: '',
+      mediaType: 'image',
+      placement: 'home_dashboard',
+      targetUrl: '',
+      city: '',
+      priority: '10',
+    });
+    setPreviewUrl(null);
+    setAssetValid(false);
+    setAssetErrors([]);
+  };
+
   const onFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
-    const isVideo = ext === 'mp4';
-    const mediaType = isVideo ? 'video' : 'image';
+    const mediaType = ext === 'mp4' ? 'video' : 'image';
     const validation = await validateAdAssetFile(file, mediaType);
+    setAssetErrors(validation.errors);
+    setAssetValid(validation.ok);
     if (!validation.ok) {
+      setPreviewUrl(null);
+      setForm((f) => ({ ...f, mediaType, mediaUrl: '' }));
       setError(validation.errors.join(' '));
       return;
     }
@@ -89,11 +125,14 @@ export function AdCampaignsPage() {
     setError(null);
   };
 
+  const canSave = useMemo(
+    () => assetValid && Boolean(form.title.trim()) && Boolean(form.targetUrl.trim()) && Boolean(form.mediaUrl.trim()),
+    [assetValid, form.title, form.targetUrl, form.mediaUrl],
+  );
+
   const save = async () => {
-    if (!form.title.trim() || !form.mediaUrl.trim() || !form.targetUrl.trim()) {
-      setError('Title, media URL, and target URL are required.');
-      return;
-    }
+    if (!canSave) return;
+    setSaving(true);
     try {
       await adminApi.createBanner({
         title: form.title.trim(),
@@ -109,11 +148,23 @@ export function AdCampaignsPage() {
         ctaText: 'Learn more',
       });
       setOpen(false);
-      setForm({ title: '', subtitle: '', mediaUrl: '', mediaType: 'image', placement: 'home_dashboard', targetUrl: '', city: '', priority: '10' });
-      setPreviewUrl(null);
+      resetForm();
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Delete this ad campaign?')) return;
+    try {
+      await adminApi.deleteBanner(id);
+      setRows((prev) => prev.filter((r) => r.id !== id));
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Delete failed');
     }
   };
 
@@ -123,9 +174,16 @@ export function AdCampaignsPage() {
     <>
       <PageHeader
         title="Ad Campaigns"
-        subtitle="Upload poster/video assets and set destination links for in-app banners"
+        subtitle="Upload poster/video assets, preview placement, and queue sequential in-app delivery"
         action={
-          <Button variant="contained" sx={{ bgcolor: NEXGEN_ORANGE }} onClick={() => setOpen(true)}>
+          <Button
+            variant="contained"
+            sx={{ bgcolor: NEXGEN_ORANGE }}
+            onClick={() => {
+              resetForm();
+              setOpen(true);
+            }}
+          >
             + New Campaign
           </Button>
         }
@@ -134,7 +192,9 @@ export function AdCampaignsPage() {
       <Table size="small">
         <TableHead>
           <TableRow>
+            <TableCell>Queue #</TableCell>
             <TableCell>Title</TableCell>
+            <TableCell>Placement</TableCell>
             <TableCell>Media</TableCell>
             <TableCell>Target URL</TableCell>
             <TableCell>Status</TableCell>
@@ -144,7 +204,11 @@ export function AdCampaignsPage() {
         <TableBody>
           {rows.map((b) => (
             <TableRow key={b.id}>
+              <TableCell>{(b.displayOrder ?? 0) + 1}</TableCell>
               <TableCell>{b.title}</TableCell>
+              <TableCell>
+                <Chip size="small" label={PLACEMENT_LABELS[b.placement || 'home_dashboard'] || b.placement} />
+              </TableCell>
               <TableCell>
                 <Chip size="small" label={b.mediaType || 'image'} />
               </TableCell>
@@ -155,15 +219,7 @@ export function AdCampaignsPage() {
                 <Chip size="small" color={b.isActive ? 'success' : 'default'} label={b.isActive ? 'Live' : 'Inactive'} />
               </TableCell>
               <TableCell align="right">
-                <IconButton
-                  size="small"
-                  color="error"
-                  onClick={async () => {
-                    if (!window.confirm('Delete this ad campaign?')) return;
-                    await adminApi.deleteBanner(b.id);
-                    load();
-                  }}
-                >
+                <IconButton size="small" color="error" onClick={() => handleDelete(b.id)}>
                   <DeleteIcon />
                 </IconButton>
               </TableCell>
@@ -179,53 +235,56 @@ export function AdCampaignsPage() {
             <TextField label="Campaign title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} fullWidth required />
             <TextField label="Subtitle (optional)" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} fullWidth />
             <Box>
-              <Typography variant="caption" color="text.secondary">Media file (.jpg / .png / .mp4)</Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                Media file (.jpg / .png / .mp4)
+              </Typography>
               <Button variant="outlined" component="label" sx={{ mt: 0.5, display: 'block' }}>
                 Choose file
-                <input type="file" hidden accept=".jpg,.jpeg,.png,.mp4,image/*,video/mp4" onChange={onFilePick} />
+                <input type="file" hidden accept=".jpg,.jpeg,.png,.mp4,image/jpeg,image/png,video/mp4" onChange={onFilePick} />
               </Button>
+              <Box component="table" sx={{ mt: 1.5, width: '100%', fontSize: 12, borderCollapse: 'collapse' }}>
+                <Box component="thead">
+                  <Box component="tr" sx={{ bgcolor: '#f5f5f5' }}>
+                    <Box component="th" sx={{ textAlign: 'left', p: 0.75 }}>Asset Type</Box>
+                    <Box component="th" sx={{ textAlign: 'left', p: 0.75 }}>Max Size</Box>
+                    <Box component="th" sx={{ textAlign: 'left', p: 0.75 }}>Max Duration</Box>
+                    <Box component="th" sx={{ textAlign: 'left', p: 0.75 }}>Dimensions</Box>
+                  </Box>
+                </Box>
+                <Box component="tbody">
+                  {AD_ASSET_SPECS.map((row) => (
+                    <Box component="tr" key={row.type}>
+                      <Box component="td" sx={{ p: 0.75, borderTop: '1px solid #eee' }}>{row.type}</Box>
+                      <Box component="td" sx={{ p: 0.75, borderTop: '1px solid #eee' }}>{row.maxSize}</Box>
+                      <Box component="td" sx={{ p: 0.75, borderTop: '1px solid #eee' }}>{row.duration}</Box>
+                      <Box component="td" sx={{ p: 0.75, borderTop: '1px solid #eee' }}>{row.dimensions}</Box>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+              {assetErrors.length > 0 ? (
+                <Alert severity="warning" sx={{ mt: 1 }}>
+                  {assetErrors.join(' ')}
+                </Alert>
+              ) : assetValid ? (
+                <Alert severity="success" sx={{ mt: 1 }}>Asset meets all requirements.</Alert>
+              ) : (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  Save stays disabled until a compatible file is uploaded.
+                </Typography>
+              )}
             </Box>
             <TextField
               select
               label="Placement"
               value={form.placement}
-              onChange={(e) => setForm({ ...form, placement: e.target.value })}
+              onChange={(e) => setForm({ ...form, placement: e.target.value as AdPlacement })}
               fullWidth
             >
               <MenuItem value="home_dashboard">User Home Dashboard</MenuItem>
               <MenuItem value="partner_live_tracking">Partner Tracking / Live Screen</MenuItem>
             </TextField>
-            <Box sx={{ p: 2, border: '1px dashed #ff9800', borderRadius: 2, bgcolor: '#fafafa' }}>
-              <Typography variant="caption" color="text.secondary">Placement preview</Typography>
-              <Box
-                sx={{
-                  mt: 1,
-                  height: form.placement === 'partner_live_tracking' ? 50 : 120,
-                  bgcolor: '#eee',
-                  borderRadius: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                }}
-              >
-                {previewUrl && form.mediaType === 'image' ? (
-                  <Box component="img" src={previewUrl} alt="preview" sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : previewUrl && form.mediaType === 'video' ? (
-                  <Box component="video" src={previewUrl} muted autoPlay loop sx={{ width: '100%', height: '100%' }} />
-                ) : (
-                  <Typography variant="caption">Upload asset to preview</Typography>
-                )}
-              </Box>
-            </Box>
-            <TextField
-              label="Media URL (required)"
-              value={form.mediaUrl}
-              onChange={(e) => setForm({ ...form, mediaUrl: e.target.value })}
-              fullWidth
-              required
-              helperText="Public URL to your hosted image or video"
-            />
+            <PlacementPreviewContainer placement={form.placement} previewUrl={previewUrl} mediaType={form.mediaType} />
             <TextField
               label="Target URL (required)"
               value={form.targetUrl}
@@ -235,12 +294,14 @@ export function AdCampaignsPage() {
               helperText="Website or deep link opened in in-app browser when tapped"
             />
             <TextField label="City (optional)" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} fullWidth />
-            <TextField label="Priority" value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} fullWidth />
+            <TextField label="Priority" value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} fullWidth helperText="Higher priority breaks ties within the queue" />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={save}>Save campaign</Button>
+          <Button variant="contained" onClick={save} disabled={!canSave || saving} sx={{ bgcolor: canSave ? NEXGEN_ORANGE : undefined }}>
+            Save campaign
+          </Button>
         </DialogActions>
       </Dialog>
     </>

@@ -19,7 +19,9 @@ import {
   Typography,
   FormControlLabel,
   Switch,
+  IconButton,
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
@@ -77,6 +79,7 @@ export function StaffPage() {
     upiId: '',
   });
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [deleteRow, setDeleteRow] = useState<StaffRow | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -122,6 +125,18 @@ export function StaffPage() {
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Update failed');
+    }
+  };
+
+  const confirmDeleteStaff = async () => {
+    if (!deleteRow) return;
+    try {
+      await adminApi.updateStaff(deleteRow.id, { isActive: false });
+      setDeleteRow(null);
+      setRows((prev) => prev.filter((r) => r.id !== deleteRow.id));
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Remove failed');
     }
   };
 
@@ -187,6 +202,11 @@ export function StaffPage() {
                   <Button size="small" onClick={() => toggleStatus(r)}>
                     {r.status === 'Active' ? 'Deactivate' : 'Activate'}
                   </Button>
+                  {isAdmin ? (
+                    <IconButton size="small" color="error" onClick={() => setDeleteRow(r)} title="Remove staff">
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  ) : null}
                 </Can>
               </TableCell>
             </TableRow>
@@ -235,6 +255,21 @@ export function StaffPage() {
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={saveStaff}>Save Staff</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!deleteRow} onClose={() => setDeleteRow(null)}>
+        <DialogTitle>Remove staff — {deleteRow?.name}</DialogTitle>
+        <DialogContent>
+          <Typography>
+            This deactivates the staff account (soft delete). Financial and audit records are retained.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteRow(null)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={confirmDeleteStaff}>
+            Remove
+          </Button>
         </DialogActions>
       </Dialog>
     </>

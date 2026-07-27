@@ -25,6 +25,7 @@ import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
 import { ErrorAlert } from '../components/ErrorAlert';
 import { PlacementPreviewContainer } from '../components/PlacementPreviewContainer';
+import { GeoFenceMapField, type LatLng } from '../components/GeoFenceMapField';
 import { NEXGEN_ORANGE } from '../theme';
 import {
   AD_ASSET_SPECS,
@@ -43,6 +44,7 @@ type BannerRow = {
   placement?: string;
   redirectType: string;
   redirectValue?: string;
+  geoFence?: LatLng[] | null;
   isActive?: boolean;
   priority?: number;
   displayOrder?: number;
@@ -64,10 +66,10 @@ export function AdCampaignsPage() {
     mediaUrl: '',
     mediaType: 'image' as 'image' | 'video',
     placement: 'home_dashboard' as AdPlacement,
-    targetUrl: '',
     city: '',
     priority: '10',
   });
+  const [geoFence, setGeoFence] = useState<LatLng[] | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [assetValid, setAssetValid] = useState(false);
   const [assetErrors, setAssetErrors] = useState<string[]>([]);
@@ -96,10 +98,10 @@ export function AdCampaignsPage() {
       mediaUrl: '',
       mediaType: 'image',
       placement: 'home_dashboard',
-      targetUrl: '',
       city: '',
       priority: '10',
     });
+    setGeoFence(null);
     setPreviewUrl(null);
     setAssetValid(false);
     setAssetErrors([]);
@@ -126,8 +128,8 @@ export function AdCampaignsPage() {
   };
 
   const canSave = useMemo(
-    () => assetValid && Boolean(form.title.trim()) && Boolean(form.targetUrl.trim()) && Boolean(form.mediaUrl.trim()),
-    [assetValid, form.title, form.targetUrl, form.mediaUrl],
+    () => assetValid && Boolean(form.title.trim()) && Boolean(form.mediaUrl.trim()),
+    [assetValid, form.title, form.mediaUrl],
   );
 
   const save = async () => {
@@ -140,12 +142,12 @@ export function AdCampaignsPage() {
         imageUrl: form.mediaUrl.trim(),
         mediaType: form.mediaType,
         placement: form.placement,
-        redirectType: 'external',
-        redirectValue: form.targetUrl.trim(),
+        redirectType: 'none',
         city: form.city.trim() || undefined,
         priority: Number(form.priority) || 0,
         isActive: true,
         ctaText: 'Learn more',
+        geoFence: geoFence && geoFence.length >= 3 ? geoFence : null,
       });
       setOpen(false);
       resetForm();
@@ -174,7 +176,7 @@ export function AdCampaignsPage() {
     <>
       <PageHeader
         title="Ad Campaigns"
-        subtitle="Upload poster/video assets, preview placement, and queue sequential in-app delivery"
+        subtitle="Upload poster/video assets, draw a geo-fence, and queue sequential in-app delivery"
         action={
           <Button
             variant="contained"
@@ -196,7 +198,7 @@ export function AdCampaignsPage() {
             <TableCell>Title</TableCell>
             <TableCell>Placement</TableCell>
             <TableCell>Media</TableCell>
-            <TableCell>Target URL</TableCell>
+            <TableCell>Geo-Fence</TableCell>
             <TableCell>Status</TableCell>
             <TableCell align="right">Actions</TableCell>
           </TableRow>
@@ -212,8 +214,12 @@ export function AdCampaignsPage() {
               <TableCell>
                 <Chip size="small" label={b.mediaType || 'image'} />
               </TableCell>
-              <TableCell sx={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {b.redirectValue || '—'}
+              <TableCell>
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={b.geoFence && b.geoFence.length >= 3 ? `Fenced (${b.geoFence.length} pts)` : 'All locations'}
+                />
               </TableCell>
               <TableCell>
                 <Chip size="small" color={b.isActive ? 'success' : 'default'} label={b.isActive ? 'Live' : 'Inactive'} />
@@ -285,14 +291,7 @@ export function AdCampaignsPage() {
               <MenuItem value="partner_live_tracking">Partner Tracking / Live Screen</MenuItem>
             </TextField>
             <PlacementPreviewContainer placement={form.placement} previewUrl={previewUrl} mediaType={form.mediaType} />
-            <TextField
-              label="Target URL (required)"
-              value={form.targetUrl}
-              onChange={(e) => setForm({ ...form, targetUrl: e.target.value })}
-              fullWidth
-              required
-              helperText="Website or deep link opened in in-app browser when tapped"
-            />
+            <GeoFenceMapField value={geoFence} onChange={setGeoFence} />
             <TextField label="City (optional)" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} fullWidth />
             <TextField label="Priority" value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} fullWidth helperText="Higher priority breaks ties within the queue" />
           </Stack>

@@ -15,7 +15,12 @@ import {
   DialogActions,
   Switch,
   FormControlLabel,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
@@ -32,7 +37,31 @@ export function PartnersPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteName, setDeleteName] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [archived, setArchived] = useState<Record<string, unknown>[]>([]);
+  const [archivedLoaded, setArchivedLoaded] = useState(false);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
   const { onEnter, onLeave, tooltip } = useHoverMeta('partner');
+
+  const loadArchived = async () => {
+    try {
+      setArchived((await adminApi.archivedPartners()) as Record<string, unknown>[]);
+      setArchivedLoaded(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not load archived partners');
+    }
+  };
+
+  const restore = async (partnerId: string) => {
+    setRestoringId(partnerId);
+    try {
+      await adminApi.restorePartner(partnerId);
+      await Promise.all([load(), loadArchived()]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Restore failed');
+    } finally {
+      setRestoringId(null);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -143,6 +172,54 @@ export function PartnersPage() {
           ))}
         </TableBody>
       </Table>
+
+      <Can permission={PERMISSIONS.PARTNERS_COMPLIANCE}>
+        <Accordion sx={{ mt: 3 }} onChange={(_, expanded) => { if (expanded && !archivedLoaded) loadArchived(); }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography sx={{ fontWeight: 600 }}>Archived Partners{archivedLoaded ? ` (${archived.length})` : ''}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Phone</TableCell>
+                  <TableCell>Wallet at archive</TableCell>
+                  <TableCell>Archived</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {archivedLoaded && archived.length === 0 && (
+                  <TableRow><TableCell colSpan={5}><Typography color="text.secondary">No archived partners</Typography></TableCell></TableRow>
+                )}
+                {archived.map((row) => {
+                  const snapshot = (row.snapshot ?? {}) as Record<string, unknown>;
+                  const partnerId = String(row.partnerId ?? snapshot.id ?? '');
+                  return (
+                    <TableRow key={String(row.id)}>
+                      <TableCell>{String(snapshot.name ?? '—')}</TableCell>
+                      <TableCell>{String(snapshot.phone ?? '—')}</TableCell>
+                      <TableCell>₹{String(snapshot.walletBalance ?? 0)}</TableCell>
+                      <TableCell>{row.archivedAt ? new Date(String(row.archivedAt)).toLocaleString() : '—'}</TableCell>
+                      <TableCell align="right">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          disabled={restoringId === partnerId}
+                          onClick={() => restore(partnerId)}
+                        >
+                          Restore
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </AccordionDetails>
+        </Accordion>
+      </Can>
 
       <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
         <DialogTitle>Delete Partner?</DialogTitle>

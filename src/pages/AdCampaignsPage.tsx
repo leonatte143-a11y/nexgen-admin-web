@@ -66,6 +66,7 @@ export function AdCampaignsPage() {
     mediaUrl: '',
     mediaType: 'image' as 'image' | 'video',
     placement: 'home_dashboard' as AdPlacement,
+    targetUrl: '',
     city: '',
     priority: '10',
   });
@@ -98,6 +99,7 @@ export function AdCampaignsPage() {
       mediaUrl: '',
       mediaType: 'image',
       placement: 'home_dashboard',
+      targetUrl: '',
       city: '',
       priority: '10',
     });
@@ -136,13 +138,15 @@ export function AdCampaignsPage() {
     if (!canSave) return;
     setSaving(true);
     try {
+      const targetUrl = form.targetUrl.trim();
       await adminApi.createBanner({
         title: form.title.trim(),
         subtitle: form.subtitle.trim() || undefined,
         imageUrl: form.mediaUrl.trim(),
         mediaType: form.mediaType,
         placement: form.placement,
-        redirectType: 'none',
+        redirectType: targetUrl ? 'external' : 'none',
+        redirectValue: targetUrl || undefined,
         city: form.city.trim() || undefined,
         priority: Number(form.priority) || 0,
         isActive: true,
@@ -292,6 +296,14 @@ export function AdCampaignsPage() {
             </TextField>
             <PlacementPreviewContainer placement={form.placement} previewUrl={previewUrl} mediaType={form.mediaType} />
             <GeoFenceMapField value={geoFence} onChange={setGeoFence} />
+            <TextField
+              label="Redirect Destination URL / Social Link (optional)"
+              value={form.targetUrl}
+              onChange={(e) => setForm({ ...form, targetUrl: e.target.value })}
+              fullWidth
+              placeholder="https://instagram.com/shopname or https://wa.me/919876543210"
+              helperText="Opens in the in-app browser when the ad is tapped. Leave blank for no link."
+            />
             <TextField label="City (optional)" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} fullWidth />
             <TextField label="Priority" value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} fullWidth helperText="Higher priority breaks ties within the queue" />
           </Stack>

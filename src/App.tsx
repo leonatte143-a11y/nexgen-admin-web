@@ -24,6 +24,7 @@ import { PayrollPage } from './pages/PayrollPage';
 import { GeoPage } from './pages/GeoPage';
 import { MarketingPage } from './pages/MarketingPage';
 import { AdCampaignsPage } from './pages/AdCampaignsPage';
+import { MarketplacePage } from './pages/MarketplacePage';
 import { UsersPage } from './pages/UsersPage';
 import { PartnersPage } from './pages/PartnersPage';
 import { NotificationsPage } from './pages/NotificationsPage';
@@ -95,6 +96,9 @@ export default function App() {
                 <Route element={<RoleRoute permission={PERMISSIONS.MARKETING_MANAGE} />}>
                   <Route path="marketing" element={<MarketingPage />} />
                   <Route path="ad-campaigns" element={<AdCampaignsPage />} />
+                </Route>
+                <Route element={<RoleRoute permission={PERMISSIONS.MARKETPLACE_MODERATE} />}>
+                  <Route path="marketplace" element={<MarketplacePage />} />
                 </Route>
                 <Route element={<RoleRoute permission={PERMISSIONS.USERS_MANAGE} />}>
                   <Route path="users" element={<UsersPage />} />

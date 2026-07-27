@@ -67,6 +67,8 @@ export const adminApi = {
     apiGet<Record<string, unknown>>('/admin/hover-meta', { kind, id }),
   blockPartner: (id: string) => apiPost(`/admin/partners/${id}/block`),
   archivePartner: (id: string) => apiPost(`/admin/partners/${id}/archive`),
+  restorePartner: (id: string) => apiPost(`/admin/partners/${id}/restore`),
+  archivedPartners: () => apiGet<unknown[]>('/admin/partners/archived'),
 
   onlinePartners: () => apiGet<unknown[]>('/admin/bookings/online-partners'),
   reassignBooking: (bookingId: string, newPartnerId: string, reason?: string) =>
@@ -163,4 +165,11 @@ export const adminApi = {
   shopLeadStats: () => apiGet<unknown>('/admin/shops/leads'),
   shopCategories: () => apiGet<unknown[]>('/admin/shop-categories'),
   createShopCategory: (body: { name: string; id?: string }) => apiPost('/admin/shop-categories', body),
+
+  marketplaceListings: (status?: string) =>
+    apiGet<unknown[]>('/admin/marketplace/listings', status ? { status } : undefined),
+  marketplaceReports: () => apiGet<unknown[]>('/admin/marketplace/reports'),
+  banMarketplaceListing: (id: string, banSeller: boolean) =>
+    apiPost(`/admin/marketplace/listings/${id}/ban`, { banSeller }),
+  deleteMarketplaceListing: (id: string) => apiDelete(`/admin/marketplace/listings/${id}`),
 };

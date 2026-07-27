@@ -35,6 +35,7 @@ export const PERMISSIONS = {
   FRAUD_VIEW: 'fraud:view',
   SHOPS_MANAGE: 'shops:manage',
   SHOPS_VERIFY: 'shops:verify',
+  MARKETPLACE_MODERATE: 'marketplace:moderate',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -71,6 +72,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.PRICING_MANAGE,
     PERMISSIONS.SERVICES_MANAGE,
     PERMISSIONS.SHOPS_VERIFY,
+    PERMISSIONS.PARTNERS_COMPLIANCE,
   ],
   hr: [PERMISSIONS.STAFF_MANAGE, PERMISSIONS.PAYROLL_VIEW],
   marketing: [
@@ -87,6 +89,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.BOOKINGS_MANAGE,
     PERMISSIONS.CHAT_MONITOR,
     PERMISSIONS.SUPPORT_MANAGE,
+    PERMISSIONS.MARKETPLACE_MODERATE,
   ],
   recruitment_exec: [
     PERMISSIONS.KYC_MANAGE,
@@ -139,6 +142,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/geo', label: 'Geo & Heatmaps', permission: PERMISSIONS.DEMAND_ANALYTICS },
   { path: '/marketing', label: 'Coupons & Marketing', permission: PERMISSIONS.MARKETING_MANAGE },
   { path: '/ad-campaigns', label: 'Ad Campaigns', permission: PERMISSIONS.MARKETING_MANAGE },
+  { path: '/marketplace', label: 'P2P Marketplace', permission: PERMISSIONS.MARKETPLACE_MODERATE },
   { path: '/users', label: 'Users', permission: PERMISSIONS.USERS_MANAGE },
   { path: '/partners', label: 'Partners', permission: PERMISSIONS.PARTNERS_MANAGE },
   { path: '/shops', label: 'Shops & Market', permission: [PERMISSIONS.SHOPS_VERIFY, PERMISSIONS.SHOPS_MANAGE] },

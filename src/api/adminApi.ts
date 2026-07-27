@@ -11,6 +11,8 @@ import type {
 import type { CustomerPulseData } from '../types/dashboard';
 
 export const adminApi = {
+  publicConfig: () => apiGet<{ googleMapsApiKey: string | null }>('/config'),
+
   login: (email: string, password: string) =>
     apiPost<LoginResponse>('/auth/admin/login', { email, password }),
 
@@ -46,6 +48,10 @@ export const adminApi = {
 
   chats: () => apiGet<unknown[]>('/admin/chats'),
   chatAlerts: () => apiGet<unknown[]>('/admin/chats/alerts'),
+  chat: (id: string) => apiGet<{ conversation: Record<string, unknown> | null; messages: unknown[] }>(`/admin/chats/${id}`),
+  joinChat: (id: string) => apiPost<Record<string, unknown>>(`/admin/chats/${id}/join`, {}),
+  sendChatMessage: (id: string, message: string) =>
+    apiPost<Record<string, unknown>>(`/admin/chats/${id}/messages`, { message }),
   fraudFlags: () => apiGet<unknown[]>('/admin/fraud-flags'),
 
   financePayouts: () => apiGet<unknown>('/admin/finance/payouts'),
@@ -136,6 +142,15 @@ export const adminApi = {
 
   settings: () => apiGet<Record<string, unknown>>('/admin/settings'),
   updateSettings: (body: Record<string, unknown>) => apiPut('/admin/settings', body),
+  mapsKeySetting: () =>
+    apiGet<{ maskedKey: string | null; hasKey: boolean; updatedBy: string | null; updatedAt: string | null }>(
+      '/admin/settings/maps-key',
+    ),
+  updateMapsKeySetting: (apiKey: string) =>
+    apiPut<{ maskedKey: string | null; hasKey: boolean; updatedBy: string | null; updatedAt: string | null }>(
+      '/admin/settings/maps-key',
+      { apiKey },
+    ),
   geoZones: () => apiGet<unknown[]>('/admin/geo/zones'),
   setSurge: (city: string, surgeFee: number) => apiPost('/admin/geo/surge', { city, surgeFee }),
 

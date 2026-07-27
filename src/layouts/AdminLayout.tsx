@@ -38,6 +38,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import GavelIcon from '@mui/icons-material/Gavel';
 import ChatIcon from '@mui/icons-material/Chat';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import StorefrontIcon from '@mui/icons-material/Storefront';
+import CampaignIcon from '@mui/icons-material/Campaign';
 import { logout } from '../store/authSlice';
 import type { RootState } from '../store';
 import { NEXGEN_ORANGE } from '../theme';
@@ -62,6 +64,8 @@ const ICONS: Record<string, React.ReactNode> = {
   '/payroll': <AccountBalanceIcon />,
   '/geo': <MapIcon />,
   '/marketing': <LocalOfferIcon />,
+  '/ad-campaigns': <CampaignIcon />,
+  '/marketplace': <StorefrontIcon />,
   '/users': <PeopleIcon />,
   '/partners': <EngineeringIcon />,
   '/shops': <LocalOfferIcon />,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -42,7 +42,7 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import { logout } from '../store/authSlice';
 import type { RootState } from '../store';
-import { NEXGEN_ORANGE } from '../theme';
+import { KAIRO_ORANGE } from '../theme';
 import { navItemsForRole, normalizeRole } from '../config/rbac';
 
 const DRAWER_WIDTH = 260;
@@ -98,13 +98,13 @@ export function AdminLayout() {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        bgcolor: NEXGEN_ORANGE,
+        bgcolor: KAIRO_ORANGE,
         color: '#fff',
       }}
     >
       <Box sx={{ p: 2.5, flexShrink: 0 }}>
         <Typography variant="h6" sx={{ fontWeight: 800 }}>
-          NEXGEN
+          KAIRO
         </Typography>
         <Typography variant="caption" sx={{ opacity: 0.9 }}>
           Admin Control Panel

@@ -1,16 +1,16 @@
-# NEXGEN Admin Web
+﻿# KAIRO Admin Web
 
-Central Admin Control Panel for NEXGEN — React + Vite + TypeScript + MUI.
+Central Admin Control Panel for KAIRO — React + Vite + TypeScript + MUI.
 
 ## Prerequisites
 
 - Node.js 18+
-- NEXGEN backend running on port 4000 with seeded admin user
+- KAIRO backend running on port 4000 with seeded admin user
 
 ## Setup
 
 ```bash
-cd NEXGEN/admin-web
+cd KAIRO/admin-web
 cp .env.example .env.local
 npm install
 ```
@@ -32,7 +32,7 @@ Open http://localhost:5173
 
 ## Admin login (from backend seed)
 
-- Email: `admin@nexgen.local` (or `ADMIN_SEED_EMAIL` in backend `.env`)
+- Email: `admin@kairo.local` (or `ADMIN_SEED_EMAIL` in backend `.env`)
 - Password: `ChangeMe123!` (or `ADMIN_SEED_PASSWORD`)
 
 ## Modules

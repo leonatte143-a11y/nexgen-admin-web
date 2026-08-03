@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Table, TableBody, TableCell, TableHead, TableRow, Paper, TableContainer, Typography, Chip,
   Box, Stack, List, ListItemButton, ListItemText, TextField, Button, Divider,
@@ -8,7 +8,7 @@ import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
 import { ErrorAlert } from '../components/ErrorAlert';
 import { useChatSocket } from '../hooks/useChatSocket';
-import { NEXGEN_ORANGE } from '../theme';
+import { KAIRO_ORANGE } from '../theme';
 
 type Conversation = {
   id: string;
@@ -32,7 +32,7 @@ type ChatMessage = {
 };
 
 const SENDER_LABEL: Record<string, string> = { user: 'User', partner: 'Partner', admin: 'Admin (you)' };
-const SENDER_COLOR: Record<string, string> = { user: '#1976d2', partner: '#2E7D32', admin: NEXGEN_ORANGE };
+const SENDER_COLOR: Record<string, string> = { user: '#1976d2', partner: '#2E7D32', admin: KAIRO_ORANGE };
 
 export function ChatMonitorPage() {
   const [chats, setChats] = useState<Conversation[]>([]);
@@ -210,7 +210,7 @@ export function ChatMonitorPage() {
                 <Button
                   variant={selected.claimedByAdminId ? 'outlined' : 'contained'}
                   size="small"
-                  sx={{ bgcolor: selected.claimedByAdminId ? undefined : NEXGEN_ORANGE }}
+                  sx={{ bgcolor: selected.claimedByAdminId ? undefined : KAIRO_ORANGE }}
                   onClick={handleJoin}
                   disabled={joining || Boolean(selected.claimedByAdminId)}
                 >
@@ -247,7 +247,7 @@ export function ChatMonitorPage() {
                     }
                   }}
                 />
-                <Button variant="contained" sx={{ bgcolor: NEXGEN_ORANGE }} onClick={handleSend} disabled={sending || !draft.trim()}>
+                <Button variant="contained" sx={{ bgcolor: KAIRO_ORANGE }} onClick={handleSend} disabled={sending || !draft.trim()}>
                   Send
                 </Button>
               </Stack>

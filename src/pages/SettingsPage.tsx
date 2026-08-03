@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Card, CardContent, TextField, Button, Grid, Typography, Tabs, Tab, Box, Stack } from '@mui/material';
 import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
 import { ErrorAlert } from '../components/ErrorAlert';
-import { NEXGEN_ORANGE } from '../theme';
+import { KAIRO_ORANGE } from '../theme';
 
 function GeneralSettingsTab() {
   const [settings, setSettings] = useState<Record<string, string | number>>({});
@@ -150,7 +150,7 @@ function MapsApiKeyTab() {
             />
             <Button
               variant="contained"
-              sx={{ bgcolor: NEXGEN_ORANGE, alignSelf: 'flex-start' }}
+              sx={{ bgcolor: KAIRO_ORANGE, alignSelf: 'flex-start' }}
               onClick={save}
               disabled={!newKey.trim() || saving}
             >

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Paper, TextField, Button, Typography, Alert } from '@mui/material';
 import { apiPost, apiClient } from '../api/client';
-import { NEXGEN_ORANGE } from '../theme';
+import { KAIRO_ORANGE } from '../theme';
 
 export function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export function ResetPasswordPage() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('nexgen_admin_token');
+      const token = localStorage.getItem('kairo_admin_token');
       if (token) {
         await apiClient.post('/auth/admin/change-password', { newPassword }, { headers: { Authorization: `Bearer ${token}` } });
       } else {
@@ -35,8 +35,8 @@ export function ResetPasswordPage() {
 
       // Clear sensitive auth state and ensure force-reset flag is removed
       try {
-        localStorage.removeItem('nexgen_admin_token');
-        localStorage.removeItem('nexgen_admin_user');
+        localStorage.removeItem('kairo_admin_token');
+        localStorage.removeItem('kairo_admin_user');
       } catch (e) {
         // ignore localStorage errors
       }
@@ -60,7 +60,7 @@ export function ResetPasswordPage() {
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#FFF8F0', px: 2 }}>
       <Paper sx={{ p: 3, maxWidth: 420, width: '100%', borderRadius: 2, border: '1px solid #FFE0B2' }}>
-        <Typography variant="h5" sx={{ fontWeight: 800, color: NEXGEN_ORANGE, mb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: 800, color: KAIRO_ORANGE, mb: 1 }}>
           Set New Password
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

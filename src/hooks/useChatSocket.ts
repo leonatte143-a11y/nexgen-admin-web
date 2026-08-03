@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+﻿import { useEffect, useRef } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import { API_BASE_URL } from '../api/client';
 
@@ -16,7 +16,7 @@ export function useChatSocket(onMessage: (evt: MessageEvent) => void) {
   }, [onMessage]);
 
   useEffect(() => {
-    const token = localStorage.getItem('nexgen_admin_token');
+    const token = localStorage.getItem('kairo_admin_token');
     if (!token) return undefined;
 
     const origin = API_BASE_URL.replace(/\/api\/v\d+$/i, '');

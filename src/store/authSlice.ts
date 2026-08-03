@@ -1,10 +1,10 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { jwtDecode } from 'jwt-decode';
 import { adminApi } from '../api/adminApi';
 import type { AdminUser } from '../types/api';
 
-const TOKEN_KEY = 'nexgen_admin_token';
-const USER_KEY = 'nexgen_admin_user';
+const TOKEN_KEY = 'kairo_admin_token';
+const USER_KEY = 'kairo_admin_user';
 
 interface AuthState {
   token: string | null;

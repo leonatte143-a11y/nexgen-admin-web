@@ -1,6 +1,6 @@
-import { Box } from '@mui/material';
+﻿import { Box } from '@mui/material';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
-import { NEXGEN_ORANGE } from '../../theme';
+import { KAIRO_ORANGE } from '../../theme';
 
 interface GrowthChartProps {
   data: number[];
@@ -8,7 +8,7 @@ interface GrowthChartProps {
   color?: string;
 }
 
-export function GrowthChart({ data, height = 48, color = NEXGEN_ORANGE }: GrowthChartProps) {
+export function GrowthChart({ data, height = 48, color = KAIRO_ORANGE }: GrowthChartProps) {
   const points = data.map((value, index) => ({ index, value }));
 
   if (points.length === 0) {

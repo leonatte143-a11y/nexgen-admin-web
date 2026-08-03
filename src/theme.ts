@@ -1,10 +1,10 @@
-import { createTheme } from '@mui/material/styles';
+﻿import { createTheme } from '@mui/material/styles';
 
-export const NEXGEN_ORANGE = '#FF8C00';
+export const KAIRO_ORANGE = '#FF8C00';
 
 export const theme = createTheme({
   palette: {
-    primary: { main: NEXGEN_ORANGE, dark: '#E67E00', light: '#FFA733' },
+    primary: { main: KAIRO_ORANGE, dark: '#E67E00', light: '#FFA733' },
     background: { default: '#F5F6F8', paper: '#FFFFFF' },
     success: { main: '#2E7D32' },
     error: { main: '#D32F2F' },

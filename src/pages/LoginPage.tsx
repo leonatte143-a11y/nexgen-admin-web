@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -15,10 +15,10 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { loginAdmin, clearError } from '../store/authSlice';
 import type { AppDispatch, RootState } from '../store';
-import { NEXGEN_ORANGE } from '../theme';
+import { KAIRO_ORANGE } from '../theme';
 
 export function LoginPage() {
-  const [email, setEmail] = useState('admin@nexgen.local');
+  const [email, setEmail] = useState('admin@kairo.local');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
@@ -46,7 +46,7 @@ export function LoginPage() {
         justifyContent: 'center',
         px: 2,
         bgcolor: '#FFF8F0',
-        backgroundImage: `linear-gradient(160deg, ${NEXGEN_ORANGE}18 0%, #fff 45%)`,
+        backgroundImage: `linear-gradient(160deg, ${KAIRO_ORANGE}18 0%, #fff 45%)`,
       }}
     >
       <Paper
@@ -60,7 +60,7 @@ export function LoginPage() {
         }}
       >
         <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', mb: 0.5 }}>
-          NEXGEN Admin
+          KAIRO Admin
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
           Sign in to the control panel

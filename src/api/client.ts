@@ -1,4 +1,4 @@
-import axios, {
+﻿import axios, {
   type AxiosError,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
@@ -18,7 +18,7 @@ export const API_BASE_URL = resolveApiBaseUrl();
 
 if (import.meta.env.PROD && /localhost|127\.0\.0\.1/i.test(API_BASE_URL)) {
   console.error(
-    '[NEXGEN Admin] VITE_API_BASE_URL must point to your deployed API origin before production build.',
+    '[KAIRO Admin] VITE_API_BASE_URL must point to your deployed API origin before production build.',
   );
 }
 
@@ -44,7 +44,7 @@ function buildFinalUrl(config: InternalAxiosRequestConfig): string {
 }
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('nexgen_admin_token');
+  const token = localStorage.getItem('kairo_admin_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
   if (import.meta.env.DEV) {
@@ -70,8 +70,8 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
     if (error.response?.status === 401) {
-      localStorage.removeItem('nexgen_admin_token');
-      localStorage.removeItem('nexgen_admin_user');
+      localStorage.removeItem('kairo_admin_token');
+      localStorage.removeItem('kairo_admin_user');
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }

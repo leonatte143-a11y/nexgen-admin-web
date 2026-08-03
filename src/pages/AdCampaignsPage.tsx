@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -26,7 +26,7 @@ import { LoadingState } from '../components/LoadingState';
 import { ErrorAlert } from '../components/ErrorAlert';
 import { PlacementPreviewContainer } from '../components/PlacementPreviewContainer';
 import { GeoFenceMapField, type LatLng } from '../components/GeoFenceMapField';
-import { NEXGEN_ORANGE } from '../theme';
+import { KAIRO_ORANGE } from '../theme';
 import {
   AD_ASSET_SPECS,
   type AdPlacement,
@@ -184,7 +184,7 @@ export function AdCampaignsPage() {
         action={
           <Button
             variant="contained"
-            sx={{ bgcolor: NEXGEN_ORANGE }}
+            sx={{ bgcolor: KAIRO_ORANGE }}
             onClick={() => {
               resetForm();
               setOpen(true);
@@ -310,7 +310,7 @@ export function AdCampaignsPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={save} disabled={!canSave || saving} sx={{ bgcolor: canSave ? NEXGEN_ORANGE : undefined }}>
+          <Button variant="contained" onClick={save} disabled={!canSave || saving} sx={{ bgcolor: canSave ? KAIRO_ORANGE : undefined }}>
             Save campaign
           </Button>
         </DialogActions>

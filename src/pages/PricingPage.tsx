@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -26,7 +26,7 @@ import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
 import { ErrorAlert } from '../components/ErrorAlert';
-import { NEXGEN_ORANGE } from '../theme';
+import { KAIRO_ORANGE } from '../theme';
 
 interface ServiceRow {
   id: string;
@@ -172,8 +172,8 @@ export function PricingPage() {
                 ...btnRadius,
                 bgcolor: '#fff',
                 color: '#1A237E',
-                borderColor: NEXGEN_ORANGE,
-                '&:hover': { borderColor: NEXGEN_ORANGE, bgcolor: '#FFF8F0' },
+                borderColor: KAIRO_ORANGE,
+                '&:hover': { borderColor: KAIRO_ORANGE, bgcolor: '#FFF8F0' },
               }}
             >
               + Add New Category
@@ -181,7 +181,7 @@ export function PricingPage() {
             <Button
               variant="contained"
               onClick={() => setSvcOpen(true)}
-              sx={{ ...btnRadius, bgcolor: NEXGEN_ORANGE, '&:hover': { bgcolor: '#E67E00' } }}
+              sx={{ ...btnRadius, bgcolor: KAIRO_ORANGE, '&:hover': { bgcolor: '#E67E00' } }}
             >
               + Add New Service
             </Button>

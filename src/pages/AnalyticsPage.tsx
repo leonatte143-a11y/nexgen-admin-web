@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Box, ToggleButton, ToggleButtonGroup, Typography, Card, CardContent } from '@mui/material';
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
@@ -70,7 +70,7 @@ export function AnalyticsPage() {
           <>
             <Stat label="Total Earnings" value={`₹${data?.totalEarnings ?? 0}`} />
             <Stat label="Gross Revenue" value={`₹${data?.grossRevenue ?? 0}`} />
-            <Stat label="NEXGEN 10%" value={`₹${data?.adminCommission ?? 0}`} />
+            <Stat label="KAIRO 10%" value={`₹${data?.adminCommission ?? 0}`} />
           </>
         )}
         {role !== 'hr' && <Stat label="Active Bookings" value={String(data?.activeBookings ?? 0)} />}

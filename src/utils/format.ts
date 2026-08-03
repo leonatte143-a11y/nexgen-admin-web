@@ -1,4 +1,4 @@
-export function formatInr(amount: number, compact = false): string {
+﻿export function formatInr(amount: number, compact = false): string {
   if (compact && amount >= 100000) {
     return `₹${(amount / 100000).toFixed(1)}L`;
   }
@@ -11,7 +11,7 @@ export function formatPct(value: number, signed = true): string {
 }
 
 export function buildRecruitMessage(keyword: string, city = 'Rajahmundry'): string {
-  return `We are receiving many ${keyword} requests in ${city}. Join NEXGEN as a verified service partner.`;
+  return `We are receiving many ${keyword} requests in ${city}. Join KAIRO as a verified service partner.`;
 }
 
 export function buildWhatsAppUrl(message: string, phone?: string): string {

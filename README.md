@@ -63,3 +63,4 @@ npm run preview
 ```
 
 Set `VITE_API_BASE_URL` to your production API origin (without `/api/v1`).
+# nexgen-admin-web

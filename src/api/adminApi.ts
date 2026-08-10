@@ -141,6 +141,9 @@ export const adminApi = {
   createBanner: (body: unknown) => apiPost('/admin/banners', body),
   updateBanner: (id: string, body: unknown) => apiPut(`/admin/banners/${id}`, body),
   deleteBanner: (id: string) => apiDelete(`/admin/banners/${id}`),
+  pendingAds: () => apiGet<unknown[]>('/admin/banners', { status: 'pending' }),
+  approveAd: (id: string) => apiPost(`/admin/banners/${id}/approve`, {}),
+  rejectAd: (id: string, reason?: string) => apiPost(`/admin/banners/${id}/reject`, { reason }),
 
   settings: () => apiGet<Record<string, unknown>>('/admin/settings'),
   updateSettings: (body: Record<string, unknown>) => apiPut('/admin/settings', body),

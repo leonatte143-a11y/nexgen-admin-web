@@ -48,6 +48,8 @@ type BannerRow = {
   isActive?: boolean;
   priority?: number;
   displayOrder?: number;
+  status?: string;
+  partnerId?: string | null;
 };
 
 const PLACEMENT_LABELS: Record<string, string> = {
@@ -57,6 +59,7 @@ const PLACEMENT_LABELS: Record<string, string> = {
 
 export function AdCampaignsPage() {
   const [rows, setRows] = useState<BannerRow[]>([]);
+  const [pendingRows, setPendingRows] = useState<BannerRow[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,9 +91,28 @@ export function AdCampaignsPage() {
     }
   };
 
+  const loadPending = async () => {
+    try {
+      setPendingRows((await adminApi.pendingAds()) as BannerRow[]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Load failed');
+    }
+  };
+
   useEffect(() => {
     load();
+    loadPending();
   }, []);
+
+  const actOnPending = async (id: string, approve: boolean) => {
+    try {
+      if (approve) await adminApi.approveAd(id);
+      else await adminApi.rejectAd(id, 'Did not meet ad guidelines');
+      await Promise.all([load(), loadPending()]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Action failed');
+    }
+  };
 
   const resetForm = () => {
     setForm({
@@ -195,6 +217,46 @@ export function AdCampaignsPage() {
         }
       />
       <ErrorAlert message={error} />
+
+      {pendingRows.length > 0 ? (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+            Pending Partner Ad Requests
+          </Typography>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Business</TableCell>
+                <TableCell>Placement</TableCell>
+                <TableCell>Media</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {pendingRows.map((b) => (
+                <TableRow key={b.id}>
+                  <TableCell>{b.title}</TableCell>
+                  <TableCell>
+                    <Chip size="small" label={PLACEMENT_LABELS[b.placement || 'home_dashboard'] || b.placement} />
+                  </TableCell>
+                  <TableCell>
+                    <Chip size="small" label={b.mediaType || 'image'} />
+                  </TableCell>
+                  <TableCell align="right">
+                    <Button size="small" variant="contained" color="success" sx={{ mr: 1 }} onClick={() => actOnPending(b.id, true)}>
+                      Approve
+                    </Button>
+                    <Button size="small" variant="outlined" color="error" onClick={() => actOnPending(b.id, false)}>
+                      Reject
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
+      ) : null}
+
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -208,7 +270,7 @@ export function AdCampaignsPage() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((b) => (
+          {rows.filter((b) => b.status !== 'pending').map((b) => (
             <TableRow key={b.id}>
               <TableCell>{(b.displayOrder ?? 0) + 1}</TableCell>
               <TableCell>{b.title}</TableCell>

@@ -31,6 +31,11 @@ export function DashboardPage() {
   const { financial, alerts, topByJobs, topByRating, userGrowth, customerPulse, heatmapPreview, supportChat } =
     extended;
 
+  // `activeAds`/`pendingCustomCategories` were added to the backend dashboard stats payload
+  // but the shared DashboardStats type in adminApi.ts is intentionally left untouched here
+  // (a parallel workstream may be editing that file), so we widen the type locally instead.
+  const extraStats = stats as typeof stats & { activeAds?: number; pendingCustomCategories?: number };
+
   return (
     <Box sx={{ pb: 4 }}>
       <PageHeader
@@ -75,6 +80,16 @@ export function DashboardPage() {
             subtitle={`${stats.totalBookings.toLocaleString()} total bookings`}
             trend={{ value: userGrowth.weeklyGrowthPct, label: 'this week' }}
             sparklineData={userGrowth.sparkline}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <StatCard title="Active Ads" value={extraStats.activeAds ?? 0} subtitle="Approved & live" />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            title="Pending Custom Categories"
+            value={extraStats.pendingCustomCategories ?? 0}
+            subtitle="Awaiting verification"
           />
         </Grid>
       </Grid>

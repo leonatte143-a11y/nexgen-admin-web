@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -15,6 +15,8 @@ import {
   Box,
   Typography,
   Stack,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Can } from '../components/Can';
 import { PERMISSIONS } from '../config/rbac';
@@ -31,6 +33,12 @@ interface KycRow {
   categories: string[] | string;
   verificationStatus: string;
   documents: { docType: string; fileUrl: string }[];
+  customCategoryRequest?: string;
+}
+
+interface CategoryOption {
+  id: string;
+  nameEn: string;
 }
 
 function normalizeCategories(categories: string[] | string | undefined): string {
@@ -50,10 +58,22 @@ export function KycPage() {
   const [selected, setSelected] = useState<KycRow | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [customOnly, setCustomOnly] = useState(false);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [mapCategoryId, setMapCategoryId] = useState('');
+  const [mapMode, setMapMode] = useState(false);
+  const [actionBusy, setActionBusy] = useState(false);
 
   const fetchPending = useCallback(() => adminApi.pendingKyc() as Promise<KycRow[]>, []);
 
   const { data: rows, loading, error, reload } = useMountedFetch(fetchPending, [fetchPending]);
+
+  useEffect(() => {
+    adminApi
+      .categories()
+      .then((cats) => setCategories(cats as CategoryOption[]))
+      .catch(() => setCategories([]));
+  }, []);
 
   const act = async (id: string, approve: boolean) => {
     try {
@@ -64,6 +84,36 @@ export function KycPage() {
     } catch (e) {
       // reload will surface errors; keep dialog open on action failure
       console.error(e);
+    }
+  };
+
+  const approveAddCategory = async (id: string) => {
+    setActionBusy(true);
+    try {
+      await adminApi.approveKycAddCategory(id);
+      setSelected(null);
+      setMapMode(false);
+      await reload();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const approveMapCategory = async (id: string) => {
+    if (!mapCategoryId) return;
+    setActionBusy(true);
+    try {
+      await adminApi.approveKycMapCategory(id, mapCategoryId);
+      setSelected(null);
+      setMapMode(false);
+      setMapCategoryId('');
+      await reload();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setActionBusy(false);
     }
   };
 
@@ -82,12 +132,26 @@ export function KycPage() {
     }
   };
 
-  const list = rows ?? [];
+  const allRows = rows ?? [];
+  const list = customOnly ? allRows.filter((r) => !!r.customCategoryRequest) : allRows;
 
-  if (loading && list.length === 0) return <LoadingState />;
+  if (loading && allRows.length === 0) return <LoadingState />;
   return (
     <>
-      <PageHeader title="Partner Verification Hub" subtitle="Approve KYC before partners can earn" />
+      <PageHeader
+        title="Partner Verification Hub"
+        subtitle="Approve KYC before partners can earn"
+        action={
+          <Button
+            variant={customOnly ? 'contained' : 'outlined'}
+            color="warning"
+            size="small"
+            onClick={() => setCustomOnly((v) => !v)}
+          >
+            Pending Custom Categories
+          </Button>
+        }
+      />
       <ErrorAlert message={error} />
       <Table size="small">
         <TableHead>
@@ -116,13 +180,30 @@ export function KycPage() {
                 <br />
                 <Typography variant="caption">{r.phone}</Typography>
               </TableCell>
-              <TableCell>{normalizeCategories(r.categories)}</TableCell>
+              <TableCell>
+                {normalizeCategories(r.categories)}
+                {r.customCategoryRequest && (
+                  <Chip
+                    label={`New category: ${r.customCategoryRequest}`}
+                    size="small"
+                    color="secondary"
+                    sx={{ ml: 1 }}
+                  />
+                )}
+              </TableCell>
               <TableCell>{r.documents?.length || 0} files</TableCell>
               <TableCell>
                 <Chip label={r.verificationStatus} size="small" color="warning" />
               </TableCell>
               <TableCell align="right">
-                <Button size="small" onClick={() => setSelected(r)}>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    setMapMode(false);
+                    setMapCategoryId('');
+                    setSelected(r);
+                  }}
+                >
                   Review
                 </Button>
               </TableCell>
@@ -136,6 +217,22 @@ export function KycPage() {
           <>
             <DialogTitle>{selected.name} — KYC Review</DialogTitle>
             <DialogContent>
+              {selected.customCategoryRequest && (
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    borderRadius: 1,
+                    border: '2px solid',
+                    borderColor: 'warning.main',
+                    bgcolor: 'warning.light',
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 800, fontSize: '1.05rem' }}>
+                    Requested new category: &quot;{selected.customCategoryRequest}&quot;
+                  </Typography>
+                </Box>
+              )}
               <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 2, mb: 2 }}>
                 {selected.documents?.map((d) => (
                   <Box key={d.docType}>
@@ -149,19 +246,75 @@ export function KycPage() {
                   </Box>
                 ))}
               </Stack>
-              <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
-                <Button variant="contained" color="success" onClick={() => act(selected.id, true)}>
-                  Approve
-                </Button>
-                <Button variant="contained" color="error" onClick={() => act(selected.id, false)}>
-                  Reject
-                </Button>
-                <Can permission={PERMISSIONS.PARTNERS_COMPLIANCE}>
+
+              {selected.customCategoryRequest ? (
+                <Stack spacing={1.5}>
+                  <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      disabled={actionBusy}
+                      onClick={() => approveAddCategory(selected.id)}
+                    >
+                      Approve & Add to Master List
+                    </Button>
+                    <Button
+                      variant={mapMode ? 'contained' : 'outlined'}
+                      color="primary"
+                      onClick={() => setMapMode((v) => !v)}
+                    >
+                      Approve & Map to Existing
+                    </Button>
+                    <Button variant="contained" color="error" onClick={() => act(selected.id, false)}>
+                      Reject
+                    </Button>
+                  </Stack>
+                  {mapMode && (
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                      <Select
+                        size="small"
+                        displayEmpty
+                        value={mapCategoryId}
+                        onChange={(e) => setMapCategoryId(e.target.value)}
+                        sx={{ minWidth: 240 }}
+                      >
+                        <MenuItem value="">
+                          <em>Select existing category</em>
+                        </MenuItem>
+                        {categories.map((c) => (
+                          <MenuItem key={c.id} value={c.id}>
+                            {c.nameEn}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      <Button
+                        variant="contained"
+                        disabled={!mapCategoryId || actionBusy}
+                        onClick={() => approveMapCategory(selected.id)}
+                      >
+                        Confirm Mapping
+                      </Button>
+                    </Stack>
+                  )}
+                </Stack>
+              ) : (
+                <Stack direction="row" sx={{ gap: 1, flexWrap: 'wrap' }}>
+                  <Button variant="contained" color="success" onClick={() => act(selected.id, true)}>
+                    Approve
+                  </Button>
+                  <Button variant="contained" color="error" onClick={() => act(selected.id, false)}>
+                    Reject
+                  </Button>
+                </Stack>
+              )}
+
+              <Can permission={PERMISSIONS.PARTNERS_COMPLIANCE}>
+                <Box sx={{ mt: 1.5 }}>
                   <Button variant="outlined" color="error" onClick={() => setDeleteOpen(true)}>
                     Delete Partner
                   </Button>
-                </Can>
-              </Stack>
+                </Box>
+              </Can>
             </DialogContent>
           </>
         )}

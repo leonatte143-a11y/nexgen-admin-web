@@ -64,6 +64,7 @@ export function PricingPage() {
 
   const [catOpen, setCatOpen] = useState(false);
   const [svcOpen, setSvcOpen] = useState(false);
+  const [editCat, setEditCat] = useState<CategoryRow | null>(null);
   const [catForm, setCatForm] = useState({
     nameEn: '',
     emoji: '•',
@@ -118,19 +119,31 @@ export function PricingPage() {
 
   const saveCategory = async () => {
     try {
-      await adminApi.createCategory({
-        nameEn: catForm.nameEn,
-        emoji: catForm.emoji,
-        iconUrl: catForm.iconUrl || undefined,
-        minPrice: catForm.minPrice ? Number(catForm.minPrice) : undefined,
-        maxPrice: catForm.maxPrice ? Number(catForm.maxPrice) : undefined,
-        isActive: catForm.isActive,
-      });
+      if (editCat) {
+        await adminApi.updateCategory(editCat.id, {
+          nameEn: catForm.nameEn,
+          emoji: catForm.emoji,
+          iconUrl: catForm.iconUrl || undefined,
+          minPrice: catForm.minPrice ? Number(catForm.minPrice) : undefined,
+          maxPrice: catForm.maxPrice ? Number(catForm.maxPrice) : undefined,
+          isActive: catForm.isActive,
+        });
+      } else {
+        await adminApi.createCategory({
+          nameEn: catForm.nameEn,
+          emoji: catForm.emoji,
+          iconUrl: catForm.iconUrl || undefined,
+          minPrice: catForm.minPrice ? Number(catForm.minPrice) : undefined,
+          maxPrice: catForm.maxPrice ? Number(catForm.maxPrice) : undefined,
+          isActive: catForm.isActive,
+        });
+      }
       setCatOpen(false);
+      setEditCat(null);
       setCatForm({ nameEn: '', emoji: '•', iconUrl: '', minPrice: '', maxPrice: '', isActive: true });
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Category create failed');
+      setError(e instanceof Error ? e.message : 'Category save failed');
     }
   };
 
@@ -167,7 +180,11 @@ export function PricingPage() {
           <Stack direction="row" spacing={1}>
             <Button
               variant="outlined"
-              onClick={() => setCatOpen(true)}
+              onClick={() => {
+                setEditCat(null);
+                setCatForm({ nameEn: '', emoji: '•', iconUrl: '', minPrice: '', maxPrice: '', isActive: true });
+                setCatOpen(true);
+              }}
               sx={{
                 ...btnRadius,
                 bgcolor: '#fff',
@@ -211,6 +228,24 @@ export function PricingPage() {
                 <Chip label={c.isActive !== false ? 'Active' : 'Inactive'} size="small" color={c.isActive !== false ? 'success' : 'default'} />
               </TableCell>
               <TableCell align="right">
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setEditCat(c);
+                    setCatForm({
+                      nameEn: c.nameEn,
+                      emoji: c.emoji || '•',
+                      iconUrl: c.iconUrl || '',
+                      minPrice: c.minPrice != null ? String(c.minPrice) : '',
+                      maxPrice: c.maxPrice != null ? String(c.maxPrice) : '',
+                      isActive: c.isActive !== false,
+                    });
+                    setCatOpen(true);
+                  }}
+                  title="Edit category"
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
                 <IconButton size="small" color="error" onClick={() => setDeleteCat(c)} title="Delete category">
                   <DeleteIcon fontSize="small" />
                 </IconButton>
@@ -274,8 +309,16 @@ export function PricingPage() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={catOpen} onClose={() => setCatOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add New Category</DialogTitle>
+      <Dialog
+        open={catOpen}
+        onClose={() => {
+          setCatOpen(false);
+          setEditCat(null);
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{editCat ? `Edit Category — ${editCat.nameEn}` : 'Add New Category'}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField label="Category Name" value={catForm.nameEn} onChange={(e) => setCatForm({ ...catForm, nameEn: e.target.value })} fullWidth required />
@@ -292,8 +335,15 @@ export function PricingPage() {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCatOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={saveCategory}>Create Category</Button>
+          <Button
+            onClick={() => {
+              setCatOpen(false);
+              setEditCat(null);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={saveCategory}>{editCat ? 'Save Changes' : 'Create Category'}</Button>
         </DialogActions>
       </Dialog>
 

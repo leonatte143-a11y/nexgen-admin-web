@@ -78,6 +78,9 @@ export const adminApi = {
   pendingKyc: () => apiGet<unknown[]>('/admin/partners/kyc/pending'),
   approveKyc: (id: string) => apiPost(`/admin/partners/kyc/${id}/approve`),
   rejectKyc: (id: string, reason?: string) => apiPost(`/admin/partners/kyc/${id}/reject`, { reason }),
+  approveKycAddCategory: (id: string) => apiPost(`/admin/partners/kyc/${id}/approve-add-category`, {}),
+  approveKycMapCategory: (id: string, categoryId: string) =>
+    apiPost(`/admin/partners/kyc/${id}/approve-map-category`, { categoryId }),
 
   pendingPartnerPrices: () => apiGet<unknown[]>('/admin/partner-prices/pending'),
   approvePartnerPrice: (id: string) => apiPost(`/admin/partner-prices/${id}/approve`, {}),

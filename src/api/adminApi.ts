@@ -177,5 +177,8 @@ export const adminApi = {
   marketplaceReports: () => apiGet<unknown[]>('/admin/marketplace/reports'),
   banMarketplaceListing: (id: string, banSeller: boolean) =>
     apiPost(`/admin/marketplace/listings/${id}/ban`, { banSeller }),
+  approveMarketplaceListing: (id: string) => apiPut(`/admin/marketplace/listings/${id}/approve`, {}),
+  rejectMarketplaceListing: (id: string, reason?: string) =>
+    apiPut(`/admin/marketplace/listings/${id}/reject`, { reason }),
   deleteMarketplaceListing: (id: string) => apiDelete(`/admin/marketplace/listings/${id}`),
 };

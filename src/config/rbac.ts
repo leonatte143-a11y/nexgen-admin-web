@@ -142,7 +142,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/geo', label: 'Geo & Heatmaps', permission: PERMISSIONS.DEMAND_ANALYTICS },
   { path: '/marketing', label: 'Coupons & Marketing', permission: PERMISSIONS.MARKETING_MANAGE },
   { path: '/ad-campaigns', label: 'Ad Campaigns', permission: PERMISSIONS.MARKETING_MANAGE },
-  { path: '/marketplace', label: 'P2P Marketplace', permission: PERMISSIONS.MARKETPLACE_MODERATE },
+  { path: '/marketplace', label: 'EXO Store (Marketplace)', permission: PERMISSIONS.MARKETPLACE_MODERATE },
   { path: '/users', label: 'Users', permission: PERMISSIONS.USERS_MANAGE },
   { path: '/partners', label: 'Partners', permission: PERMISSIONS.PARTNERS_MANAGE },
   { path: '/shops', label: 'Shops & Market', permission: [PERMISSIONS.SHOPS_VERIFY, PERMISSIONS.SHOPS_MANAGE] },

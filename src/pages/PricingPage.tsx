@@ -22,6 +22,8 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 import { adminApi } from '../api/adminApi';
 import { PageHeader } from '../components/PageHeader';
 import { LoadingState } from '../components/LoadingState';
@@ -76,8 +78,7 @@ export function PricingPage() {
   const [svcForm, setSvcForm] = useState({
     categoryId: '',
     name: '',
-    basePrice: '',
-    commissionPercent: '10',
+    customFields: [] as { label: string; value: string }[],
   });
   const [deleteCat, setDeleteCat] = useState<CategoryRow | null>(null);
 
@@ -152,11 +153,10 @@ export function PricingPage() {
       await adminApi.createService({
         categoryId: svcForm.categoryId,
         name: svcForm.name,
-        basePrice: Number(svcForm.basePrice),
-        commissionPercent: Number(svcForm.commissionPercent),
+        customFields: svcForm.customFields.filter((f) => f.label.trim()),
       });
       setSvcOpen(false);
-      setSvcForm({ categoryId: '', name: '', basePrice: '', commissionPercent: '10' });
+      setSvcForm({ categoryId: '', name: '', customFields: [] });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Service create failed');
@@ -357,8 +357,61 @@ export function PricingPage() {
               ))}
             </TextField>
             <TextField label="Service Name" value={svcForm.name} onChange={(e) => setSvcForm({ ...svcForm, name: e.target.value })} fullWidth required />
-            <TextField label="Global Base Price (₹)" value={svcForm.basePrice} onChange={(e) => setSvcForm({ ...svcForm, basePrice: e.target.value })} fullWidth />
-            <TextField label="Platform Commission (%)" value={svcForm.commissionPercent} onChange={(e) => setSvcForm({ ...svcForm, commissionPercent: e.target.value })} fullWidth />
+
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="subtitle2">Custom Parameters</Typography>
+                <Button
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() =>
+                    setSvcForm({
+                      ...svcForm,
+                      customFields: [...svcForm.customFields, { label: '', value: '' }],
+                    })
+                  }
+                >
+                  Add New
+                </Button>
+              </Box>
+              <Stack spacing={1.5}>
+                {svcForm.customFields.map((f, i) => (
+                  <Box key={i} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <TextField
+                      label="Label"
+                      value={f.label}
+                      onChange={(e) => {
+                        const next = [...svcForm.customFields];
+                        next[i] = { ...next[i], label: e.target.value };
+                        setSvcForm({ ...svcForm, customFields: next });
+                      }}
+                      fullWidth
+                    />
+                    <TextField
+                      label="Value"
+                      value={f.value}
+                      onChange={(e) => {
+                        const next = [...svcForm.customFields];
+                        next[i] = { ...next[i], value: e.target.value };
+                        setSvcForm({ ...svcForm, customFields: next });
+                      }}
+                      fullWidth
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        setSvcForm({
+                          ...svcForm,
+                          customFields: svcForm.customFields.filter((_, idx) => idx !== i),
+                        })
+                      }
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
           </Stack>
         </DialogContent>
         <DialogActions>

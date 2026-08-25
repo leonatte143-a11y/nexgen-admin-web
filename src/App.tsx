@@ -19,6 +19,7 @@ import { BookingsPage } from './pages/BookingsPage';
 import { LiveBookingsPage } from './pages/LiveBookingsPage';
 import { ChatMonitorPage } from './pages/ChatMonitorPage';
 import { SupportPage } from './pages/SupportPage';
+import { RevenuePage } from './pages/RevenuePage';
 import { PayoutsPage } from './pages/PayoutsPage';
 import { PayrollPage } from './pages/PayrollPage';
 import { GeoPage } from './pages/GeoPage';
@@ -83,6 +84,9 @@ export default function App() {
                 </Route>
                 <Route element={<RoleRoute permission={[PERMISSIONS.STAFF_MANAGE, PERMISSIONS.PAYROLL_VIEW]} />}>
                   <Route path="staff" element={<StaffPage />} />
+                </Route>
+                <Route element={<RoleRoute permission={PERMISSIONS.REVENUE_VIEW} />}>
+                  <Route path="revenue" element={<RevenuePage />} />
                 </Route>
                 <Route element={<RoleRoute permission={PERMISSIONS.PAYOUTS_MANAGE} />}>
                   <Route path="payouts" element={<PayoutsPage />} />

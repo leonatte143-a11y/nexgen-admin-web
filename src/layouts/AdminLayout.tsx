@@ -1,8 +1,9 @@
-﻿import { useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
+  Collapse,
   Drawer,
   List,
   ListItemButton,
@@ -19,6 +20,8 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -60,6 +63,7 @@ const ICONS: Record<string, React.ReactNode> = {
   '/chat': <ChatIcon />,
   '/support': <SupportAgentIcon />,
   '/staff': <PeopleIcon />,
+  '/revenue': <PaymentsIcon />,
   '/payouts': <PaymentsIcon />,
   '/payroll': <AccountBalanceIcon />,
   '/geo': <MapIcon />,
@@ -85,7 +89,15 @@ export function AdminLayout() {
   const navItems = navItemsForRole(admin?.role, admin?.permissions).map((item) => ({
     ...item,
     icon: ICONS[item.path] || <DashboardIcon />,
+    children: item.children?.map((child) => ({ ...child, icon: ICONS[child.path] || <DashboardIcon /> })),
   }));
+
+  const activeParentPath = useMemo(
+    () => navItems.find((item) => item.children?.some((c) => c.path === location.pathname))?.path,
+    [navItems, location.pathname],
+  );
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const isExpanded = (path: string) => expanded[path] ?? path === activeParentPath;
 
   if (admin?.mustResetPassword) {
     return <Navigate to="/reset-password" replace />;
@@ -126,22 +138,52 @@ export function AdminLayout() {
         }}
       >
         {navItems.map((item) => (
-          <ListItemButton
-            key={item.path}
-            selected={location.pathname === item.path}
-            onClick={() => {
-              navigate(item.path);
-              if (isMobile) setOpen(false);
-            }}
-            sx={{
-              color: '#fff',
-              '&.Mui-selected': { bgcolor: 'rgba(255,255,255,0.2)' },
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
-            }}
-          >
-            <ListItemIcon sx={{ color: '#fff', minWidth: 40 }}>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} slotProps={{ primary: { sx: { fontSize: 14 } } }} />
-          </ListItemButton>
+          <Box key={item.path}>
+            <ListItemButton
+              selected={location.pathname === item.path}
+              onClick={() => {
+                navigate(item.path);
+                if (item.children?.length) {
+                  setExpanded((prev) => ({ ...prev, [item.path]: !isExpanded(item.path) }));
+                }
+                if (isMobile && !item.children?.length) setOpen(false);
+              }}
+              sx={{
+                color: '#fff',
+                '&.Mui-selected': { bgcolor: 'rgba(255,255,255,0.2)' },
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
+              }}
+            >
+              <ListItemIcon sx={{ color: '#fff', minWidth: 40 }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.label} slotProps={{ primary: { sx: { fontSize: 14 } } }} />
+              {!!item.children?.length && (isExpanded(item.path) ? <ExpandLessIcon /> : <ExpandMoreIcon />)}
+            </ListItemButton>
+            {!!item.children?.length && (
+              <Collapse in={isExpanded(item.path)} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  {item.children.map((child) => (
+                    <ListItemButton
+                      key={child.path}
+                      selected={location.pathname === child.path}
+                      onClick={() => {
+                        navigate(child.path);
+                        if (isMobile) setOpen(false);
+                      }}
+                      sx={{
+                        pl: 4,
+                        color: '#fff',
+                        '&.Mui-selected': { bgcolor: 'rgba(255,255,255,0.2)' },
+                        '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
+                      }}
+                    >
+                      <ListItemIcon sx={{ color: '#fff', minWidth: 40 }}>{child.icon}</ListItemIcon>
+                      <ListItemText primary={child.label} slotProps={{ primary: { sx: { fontSize: 14 } } }} />
+                    </ListItemButton>
+                  ))}
+                </List>
+              </Collapse>
+            )}
+          </Box>
         ))}
       </List>
     </Box>
@@ -165,7 +207,8 @@ export function AdminLayout() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 } as const}>
-            {navItems.find((n) => n.path === location.pathname)?.label || 'Admin'}
+            {(navItems.find((n) => n.path === location.pathname) ||
+              navItems.flatMap((n) => n.children || []).find((n) => n.path === location.pathname))?.label || 'Admin'}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
             {admin?.name} ({role})

@@ -11,6 +11,7 @@ export type AdminRole =
 export const PERMISSIONS = {
   DASHBOARD_VIEW: 'dashboard:view',
   REVENUE_VIEW: 'revenue:view',
+  PAYMENTS_MANAGE: 'payments:manage',
   PAYOUTS_MANAGE: 'payouts:manage',
   PRICING_MANAGE: 'pricing:manage',
   SERVICES_MANAGE: 'services:manage',
@@ -73,6 +74,8 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     PERMISSIONS.SERVICES_MANAGE,
     PERMISSIONS.SHOPS_VERIFY,
     PERMISSIONS.PARTNERS_COMPLIANCE,
+    PERMISSIONS.REVENUE_VIEW,
+    PERMISSIONS.PAYMENTS_MANAGE,
   ],
   hr: [PERMISSIONS.STAFF_MANAGE, PERMISSIONS.PAYROLL_VIEW],
   marketing: [
@@ -121,14 +124,25 @@ export interface NavItem {
   path: string;
   label: string;
   permission: Permission | Permission[];
+  children?: NavItem[];
 }
 
 export const NAV_ITEMS: NavItem[] = [
   { path: '/', label: 'Dashboard', permission: PERMISSIONS.DASHBOARD_VIEW },
-  { path: '/analytics', label: 'Analytics Center', permission: PERMISSIONS.ANALYTICS_VIEW },
+  {
+    path: '/analytics',
+    label: 'Analytics Center',
+    permission: PERMISSIONS.ANALYTICS_VIEW,
+    children: [
+      { path: '/kyc', label: 'Partner KYC', permission: PERMISSIONS.KYC_MANAGE },
+      { path: '/users', label: 'Users', permission: PERMISSIONS.USERS_MANAGE },
+      { path: '/partners', label: 'Partners', permission: PERMISSIONS.PARTNERS_MANAGE },
+      { path: '/marketplace', label: 'EXO Store (Marketplace)', permission: PERMISSIONS.MARKETPLACE_MODERATE },
+      { path: '/ad-campaigns', label: 'Ad Campaigns', permission: PERMISSIONS.MARKETING_MANAGE },
+    ],
+  },
   { path: '/audit', label: 'Audit Monitor', permission: PERMISSIONS.AUDIT_VIEW },
   { path: '/demand', label: 'Search Analytics', permission: PERMISSIONS.DEMAND_ANALYTICS },
-  { path: '/kyc', label: 'Partner KYC', permission: PERMISSIONS.KYC_MANAGE },
   { path: '/strikes', label: 'Strike Board', permission: PERMISSIONS.PARTNERS_COMPLIANCE },
   { path: '/pricing', label: 'Service & Pricing', permission: [PERMISSIONS.PRICING_MANAGE, PERMISSIONS.SERVICES_MANAGE] },
   { path: '/partner-prices', label: 'Partner Price Review', permission: PERMISSIONS.PRICING_MANAGE },
@@ -137,14 +151,11 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/chat', label: 'Super Chat', permission: PERMISSIONS.CHAT_MONITOR },
   { path: '/support', label: 'Disputes & Support', permission: PERMISSIONS.SUPPORT_MANAGE },
   { path: '/staff', label: 'Staff Management', permission: PERMISSIONS.STAFF_MANAGE },
+  { path: '/revenue', label: 'Revenue & Payments', permission: PERMISSIONS.REVENUE_VIEW },
   { path: '/payouts', label: 'Monday Settlement', permission: PERMISSIONS.PAYOUTS_MANAGE },
   { path: '/payroll', label: 'Staff Payroll', permission: PERMISSIONS.PAYROLL_VIEW },
   { path: '/geo', label: 'Geo & Heatmaps', permission: PERMISSIONS.DEMAND_ANALYTICS },
   { path: '/marketing', label: 'Coupons & Marketing', permission: PERMISSIONS.MARKETING_MANAGE },
-  { path: '/ad-campaigns', label: 'Ad Campaigns', permission: PERMISSIONS.MARKETING_MANAGE },
-  { path: '/marketplace', label: 'EXO Store (Marketplace)', permission: PERMISSIONS.MARKETPLACE_MODERATE },
-  { path: '/users', label: 'Users', permission: PERMISSIONS.USERS_MANAGE },
-  { path: '/partners', label: 'Partners', permission: PERMISSIONS.PARTNERS_MANAGE },
   { path: '/shops', label: 'Shops & Market', permission: [PERMISSIONS.SHOPS_VERIFY, PERMISSIONS.SHOPS_MANAGE] },
   { path: '/notifications', label: 'Notifications', permission: PERMISSIONS.NOTIFICATIONS_BROADCAST },
   { path: '/settings', label: 'Settings', permission: PERMISSIONS.SETTINGS_MANAGE },
@@ -153,13 +164,25 @@ export const NAV_ITEMS: NavItem[] = [
 /** Sidebar entries restricted to full admin role (not manager/hr). */
 const ADMIN_ONLY_PATHS = new Set(['/partner-prices']);
 
-export function navItemsForRole(role?: string | null, customPermissions?: string[] | null) {
+function canSeeItem(
+  item: NavItem,
+  role: string | undefined | null,
+  normalized: AdminRole,
+  customPermissions?: string[] | null,
+): boolean {
+  if (ADMIN_ONLY_PATHS.has(item.path) && normalized !== 'admin') return false;
+  const perms = Array.isArray(item.permission) ? item.permission : [item.permission];
+  return hasAnyPermission(role, perms, customPermissions);
+}
+
+export function navItemsForRole(role?: string | null, customPermissions?: string[] | null): NavItem[] {
   const normalized = normalizeRole(role);
-  return NAV_ITEMS.filter((item) => {
-    if (ADMIN_ONLY_PATHS.has(item.path) && normalized !== 'admin') return false;
-    const perms = Array.isArray(item.permission) ? item.permission : [item.permission];
-    return hasAnyPermission(role, perms, customPermissions);
-  });
+  return NAV_ITEMS.filter((item) => canSeeItem(item, role, normalized, customPermissions))
+    .map((item) => {
+      if (!item.children) return item;
+      const children = item.children.filter((child) => canSeeItem(child, role, normalized, customPermissions));
+      return { ...item, children };
+    });
 }
 
 export function defaultPathForRole(role?: string | null): string {
@@ -168,5 +191,5 @@ export function defaultPathForRole(role?: string | null): string {
 }
 
 export const ROUTE_PERMISSIONS: Record<string, Permission | Permission[]> = Object.fromEntries(
-  NAV_ITEMS.map((n) => [n.path, n.permission]),
+  NAV_ITEMS.flatMap((n) => [[n.path, n.permission], ...(n.children || []).map((c) => [c.path, c.permission])]),
 );

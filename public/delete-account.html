@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Delete Your KAIRO Account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBF7F2;
+    --surface: #FFFFFF;
+    --text: #2B2420;
+    --text-dim: #6B6259;
+    --border: #EAE1D6;
+    --accent: #E67E00;
+    --accent-ink: #8A4B00;
+    --accent-soft: #FFF1DF;
+    --mono: #7A6E5E;
+    --danger: #B23A2E;
+    --danger-soft: #FBEAE7;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1B1712;
+      --surface: #231E18;
+      --text: #F1E9DE;
+      --text-dim: #B8AA98;
+      --border: #3A3025;
+      --accent: #FF9B2E;
+      --accent-ink: #FFC98A;
+      --accent-soft: #35271A;
+      --mono: #A8977F;
+      --danger: #FF7A68;
+      --danger-soft: #3A1F1A;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent-ink); }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 4.5rem 1.5rem 6rem; }
+
+  header.masthead { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 2.75rem; }
+  .mark {
+    width: 44px; height: 44px; border-radius: 11px; background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Lora", serif; font-weight: 700; font-size: 1.35rem; flex-shrink: 0;
+  }
+  .masthead-text .brand { font-family: "Lora", serif; font-weight: 700; font-size: 1.15rem; }
+  .masthead-text .kicker {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.72rem;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--mono);
+  }
+
+  h1 {
+    font-family: "Lora", serif; font-weight: 700; font-size: clamp(2rem, 4.5vw, 2.6rem);
+    line-height: 1.15; margin: 0 0 0.6rem; text-wrap: balance;
+  }
+  .dek { color: var(--text-dim); font-size: 1.05rem; max-width: 60ch; margin: 0 0 2.75rem; }
+
+  h2 {
+    font-family: "Lora", serif; font-weight: 600; font-size: 1.3rem; margin: 2.5rem 0 1rem;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  p { margin: 0 0 1rem; max-width: 65ch; }
+  ol.steps { margin: 0 0 1.2rem; padding-left: 1.4rem; max-width: 62ch; }
+  ol.steps li { margin-bottom: 0.7rem; }
+  ul { margin: 0 0 1rem; padding-left: 1.3rem; max-width: 62ch; }
+  ul li { margin-bottom: 0.5rem; }
+
+  .app-card {
+    display: flex; gap: 0.9rem; align-items: flex-start;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin: 0 0 2.25rem;
+  }
+  .app-card .badge {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--mono);
+    display: block; margin-bottom: 0.3rem;
+  }
+
+  .warn {
+    background: var(--danger-soft); border-radius: 12px; padding: 1.1rem 1.3rem;
+    margin: 1.2rem 0 2rem; font-size: 0.95rem;
+  }
+  .warn strong { color: var(--danger); }
+
+  .data-table { width: 100%; overflow-x: auto; margin: 1.1rem 0 1.4rem; }
+  table { border-collapse: collapse; width: 100%; min-width: 420px; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.72rem;
+    letter-spacing: 0.05em; text-transform: uppercase; color: var(--mono); font-weight: 500;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  .contact-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.5rem 1.7rem; display: grid; gap: 0.45rem; margin-top: 0.5rem;
+  }
+  .contact-card .row { display: flex; gap: 0.6rem; font-size: 0.95rem; }
+  .contact-card .label {
+    color: var(--text-dim); min-width: 5.5rem; font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.78rem; padding-top: 0.15rem;
+  }
+
+  footer {
+    margin-top: 3.5rem; padding-top: 1.75rem; border-top: 1px solid var(--border);
+    color: var(--mono); font-size: 0.82rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="mark">K</div>
+    <div class="masthead-text">
+      <div class="brand">KAIRO</div>
+      <div class="kicker">Home Services Marketplace</div>
+    </div>
+  </header>
+
+  <h1>Delete Your Account</h1>
+  <p class="dek">How to permanently delete your KAIRO account and data, as a customer or as a service partner.</p>
+
+  <div class="app-card">
+    <div>
+      <span class="badge">Applies to</span>
+      KAIRO — User App and Partner App (Android &amp; iOS)
+    </div>
+  </div>
+
+  <h2>Option 1 — Delete it yourself, in the app</h2>
+  <ol class="steps">
+    <li>Open the KAIRO app and sign in to the account you want to delete.</li>
+    <li>Go to <strong>Profile</strong>.</li>
+    <li>Tap <strong>Delete Account</strong> (or <strong>Settings → Delete Account</strong>).</li>
+    <li>Confirm the deletion when prompted.</li>
+  </ol>
+  <p>Your account is deleted immediately once confirmed — this action can't be undone from within the app.</p>
+
+  <h2>Option 2 — Request deletion by email</h2>
+  <p>If you can't access the app (lost your phone number, uninstalled the app, etc.), email us and we'll delete your account manually.</p>
+  <div class="contact-card">
+    <div class="row"><span class="label">Email</span><span><a href="mailto:kairoservicess@gmail.com">kairoservicess@gmail.com</a></span></div>
+    <div class="row"><span class="label">Subject</span><span>Account Deletion Request</span></div>
+    <div class="row"><span class="label">Include</span><span>The phone number registered on your KAIRO account, and whether it's a customer or partner account</span></div>
+  </div>
+  <p>We'll confirm your identity via the registered phone number before deleting the account, and complete the deletion within 7 business days.</p>
+
+  <h2>What gets deleted</h2>
+  <div class="data-table">
+    <table>
+      <thead><tr><th>Data</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td>Profile (name, email, address)</td><td>Deleted</td></tr>
+        <tr><td>Saved locations</td><td>Deleted</td></tr>
+        <tr><td>In-app chat &amp; support messages</td><td>Deleted</td></tr>
+        <tr><td>Partner KYC documents &amp; photos</td><td>Deleted</td></tr>
+        <tr><td>Booking &amp; transaction history</td><td>Retained for a limited period, as required for accounting, tax, and dispute-resolution obligations — then deleted</td></tr>
+        <tr><td>Payment records</td><td>Retained only as required by financial regulations, then deleted</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="warn"><strong>This can't be undone.</strong> Once your account is deleted, your booking history, wallet balance, and saved data are permanently removed (aside from the limited legally-required retention noted above). If you have an active booking or a pending wallet payout, complete or withdraw it before requesting deletion.</div>
+
+  <h2>Questions</h2>
+  <p>See our full <a href="/privacy.html">Privacy Policy</a> for more detail on data retention, or contact <a href="mailto:kairoservicess@gmail.com">kairoservicess@gmail.com</a> with any questions about this process.</p>
+
+  <footer>© 2026 KAIRO — this page is published as KAIRO's Play Store account-deletion link.</footer>
+
+</div>
+</body>
+</html>
